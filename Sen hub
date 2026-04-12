@@ -40,6 +40,7 @@ local stickySettings = {
 local CompTab = Window:CreateTab("Comp")
 local EmotesTab = Window:CreateTab("Emotes")
 local SpooferTab = Window:CreateTab("Spoofers")
+local ItemsTab = Window:CreateTab("Items")
 
 -- [[ COMP TAB ]]
 CompTab:CreateSection("--- Auto TTB (Sticky) ---")
