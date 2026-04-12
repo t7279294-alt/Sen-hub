@@ -119,7 +119,7 @@ game:GetService("RunService").Heartbeat:Connect(function()
     end
 end)
 -- [[ ITEM TAB ]]
--- MESH/CLOTHING
+ItemTab:CreateSection("Items")
 local MESH_ITEMS = {
     Coldstare={mesh="rbxassetid://5063577434",tex="rbxassetid://5047708728",par="UpperTorso",scl=Vector3.new(1,1,1),off=CFrame.new(0,0.15,0.65)*CFrame.Angles(0,math.rad(180),0)},
     DesertVest={mesh="rbxassetid://11755494017",tex="rbxassetid://11755494031",par="UpperTorso",scl=Vector3.new(0.73,1.13,0.75),off=CFrame.new(0,0,-0.05)},
