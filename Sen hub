@@ -40,7 +40,6 @@ local stickySettings = {
 local CompTab = Window:CreateTab("Comp")
 local EmotesTab = Window:CreateTab("Emotes")
 local SpooferTab = Window:CreateTab("Spoofers")
-local ItemsTab = Window:CreateTab("Items")
 
 -- [[ COMP TAB ]]
 CompTab:CreateSection("--- Auto TTB (Sticky) ---")
@@ -118,53 +117,3 @@ game:GetService("RunService").Heartbeat:Connect(function()
         end
     end
 end)
--- [[ ITEM TAB ]]
-ItemTab:CreateSection("Items")
-local MESH_ITEMS = {
-    Coldstare={mesh="rbxassetid://5063577434",tex="rbxassetid://5047708728",par="UpperTorso",scl=Vector3.new(1,1,1),off=CFrame.new(0,0.15,0.65)*CFrame.Angles(0,math.rad(180),0)},
-    DesertVest={mesh="rbxassetid://11755494017",tex="rbxassetid://11755494031",par="UpperTorso",scl=Vector3.new(0.73,1.13,0.75),off=CFrame.new(0,0,-0.05)},
-    DRC={mesh="rbxassetid://6541224713",tex="rbxassetid://7833727918",par="Head",scl=Vector3.new(1.01,1.01,1.01),off=CFrame.new(0,0.91,0.11)*CFrame.Angles(0,math.rad(90),0)},
-    Keff={mesh="rbxassetid://14156626934",tex="rbxassetid://14156781317",par="Head",scl=Vector3.new(0.9,0.9,0.9),off=CFrame.new(-0.06,0.38,0.1)*CFrame.Angles(0,math.rad(180),0)},
-    SeeingStars={mesh="rbxassetid://62139052",tex="rbxassetid://62139103",par="Head",scl=Vector3.new(1.05,1.05,1.05),off=CFrame.new(0,0.05,-0.45)},
-    Subarctic={mesh="rbxassetid://39200112",tex="rbxassetid://39200088",par="Head",scl=Vector3.new(1.02,1.02,1.02),off=CFrame.new(0,0.27,0)},
-    TacticalVest={mesh="rbxassetid://11754584493",tex="rbxassetid://11754584535",par="UpperTorso",scl=Vector3.new(0.73,1.13,0.75),off=CFrame.new(0,0,-0.05)},
-}
-local CLOTHING_ITEMS = {
-    ["Black World Tour Shirt"]={type="Shirt",assetId=15335037852},["Pink World Tour Shirt"]={type="Shirt",assetId=15334978300},
-    ["King Shirt"]={type="Shirt",assetId=6296265575},["King Pants"]={type="Pants",assetId=10725550576},
-    ["Black Bandana Shorts"]={type="Pants",assetId=15020463274},
-    ["White CW Set"]={type="Accessory",assetId=97230132426750},["Black CW Headphones"]={type="Accessory",assetId=93874449800600},
-    ["Black CW Shades"]={type="Accessory",assetId=111757672542159},
-    ["Star Chain"]={type="Accessory",assetId=12269196297},
-    ["LavaSceneHair"]={type="Accessory",assetId=113527009413079},
-    ["AltScene"]={type="Accessory",assetId=135147917900203},
-    ["Grey Flare"]={type="Shirt",assetId=15345367906},
-    ["Black Flare"]={type="Shirt",assetId=15345348842},
-    ["Red Flare"]={type="Shirt",assetId=15345347397},
-    ["Acid Flare"]={type="Shirt",assetId=15345352095},
-    ["Pastel Flare"]={type="Shirt",assetId=15345355082},
-    ["Orange Flare"]={type="Shirt",assetId=15345357354},
-    ["White World Tour"]={type="Shirt",assetId=15334975460},
-    ["Hooded Jean Jacket"]={type="Shirt",assetId=15334917844},
-}
-local Hats = {
-    {Name="Ushanka",Id=12710415119,Type="Normal",Attach="Head"},
-    {Name="Subarctic Commando",Id=100235743603545,Type="Commando",Attach="Head"},
-    {Name="Dark Ruby Crown",Id=7912127597,Type="Normal",Attach="Head"},
-    {Name="Midnight Commando",Id=259424866,Type="Commando",Attach="Head"},
-    {Name="Arctic Commando",Id=87396780155106,Type="Commando",Attach="Head"},
-    {Name="Blue CW Headphones",Id=1743903423,Type="Headphones",Attach="Head"},
-    {Name="White CW Headphones",Id=97230132426750,Type="Headphones",Attach="Head"},
-    {Name="Designer Keffyeh",Id=14157118140,Type="Normal",Attach="Head"},
-    {Name="Royal Crown",Id=11453654,Type="Normal",Attach="Head"},
-    {Name="Black CW Headphones",Id=93874449800600,Type="Headphones",Attach="Head"},
-}
-local HatOffsets = { [100235743603545]=CFrame.new(0,0.2,0)*CFrame.Angles(0,math.rad(180),0), [259424866]=CFrame.new(0,0.1,0), [7912127597]=CFrame.new(0,0.8,0.1)*CFrame.Angles(0,math.rad(90),0), [87396780155106]=CFrame.new(0,0.1,0)*CFrame.Angles(0,math.rad(180),0) }
-Tabs.Items:AddParagraph({Title="hats",Content="click to equip"})
-for _,hat in ipairs(Hats) do Tabs.Items:AddButton({Title=hat.Name,Callback=function() EquipHat(hat.Id,hat.Type,hat.Attach) end}) end
-Tabs.Items:AddButton({Title="reset hats",Callback=function() ResetHats() end})
-Tabs.Items:AddParagraph({Title="",Content=""})
-Tabs.Items:AddParagraph({Title="selftyz accessories",Content="toggle mesh/clothing"})
-local allNames={}; for k in pairs(MESH_ITEMS) do table.insert(allNames,k) end; for k in pairs(CLOTHING_ITEMS) do table.insert(allNames,k) end; table.sort(allNames)
-for _,n in ipairs(allNames) do local name=n; Tabs.Items:AddToggle("Acc_"..name,{Title=name,Default=false,Callback=function(v) if v then equipItem(name) else unequipItem(name) end end}) end
-Tabs.Items:AddButton({Title="unequip all selftyz",Callback=function() local r={}; for n in pairs(equipped) do table.insert(r,n) end; for _,n in ipairs(r) do unequipItem(n) end end})
