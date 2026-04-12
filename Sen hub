@@ -1,0 +1,119 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Console Privacy
+print = function() end
+warn = function() end
+error = function() end
+local Window = Rayfield:CreateWindow({
+   Name = "Sen Hub | Universal Football",
+   LoadingTitle = "Sen Hub",
+   LoadingSubtitle = "by Senkotuo",
+   ConfigurationSaving = {Enabled = true, FolderName = "SenHub", FileName = "Config"},
+   KeySystem = false  -- Key system disabled
+})
+-- [[ VARIABLES ]]
+local lp = game.Players.LocalPlayer
+local char = lp.Character or lp.CharacterAdded:Wait()
+local humanoid = char:WaitForChild("Humanoid")
+local root = char:WaitForChild("HumanoidRootPart")
+
+local currentBannerID = "rbxassetid://13181356130" 
+local equippedAccessories = {}
+
+-- [[ SETTINGS ]]
+local hitboxEnabled = false
+local hitboxSize = 2
+local hitboxTransparency = 0.5
+local boostEnabled = false
+local boostPower = 90
+
+local stickySettings = {
+    enabled = false,
+    strength = 0.5,
+    jumpDetectionDistance = 25,
+    stickDistance = 8,
+    isStuck = false,
+    targetHead = nil
+}
+
+-- [[ TABS ]]
+local CompTab = Window:CreateTab("Comp")
+local EmotesTab = Window:CreateTab("Emotes")
+local SpooferTab = Window:CreateTab("Spoofers")
+
+-- [[ COMP TAB ]]
+CompTab:CreateSection("--- Auto TTB (Sticky) ---")
+CompTab:CreateToggle({Name = "Enable Auto TTB", CurrentValue = false, Callback = function(V) stickySettings.enabled = V end})
+CompTab:CreateSlider({Name = "Sticky Strength", Range = {0.1, 1}, Increment = 0.05, CurrentValue = 0.5, Callback = function(V) stickySettings.strength = V end})
+
+CompTab:CreateSection("--- Hitbox Expander ---")
+CompTab:CreateToggle({Name = "Hitbox Enabled", CurrentValue = false, Callback = function(V) hitboxEnabled = V end})
+CompTab:CreateSlider({Name = "Hitbox Size", Range = {2, 30}, Increment = 1, CurrentValue = 2, Callback = function(V) hitboxSize = V end})
+
+CompTab:CreateSection("--- Boost Tech ---")
+CompTab:CreateToggle({Name = "Enable Boost", CurrentValue = false, Callback = function(V) boostEnabled = V end})
+CompTab:CreateSlider({Name = "Boost Power", Range = {50, 250}, Increment = 5, CurrentValue = 90, Callback = function(V) boostPower = V end})
+
+-- [[ EMOTES TAB ]]
+EmotesTab:CreateSection("Animations")
+local function PlayEmote(id, isLooped)
+    for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do track:Stop() end
+    local anim = Instance.new("Animation")
+    anim.AnimationId = "rbxassetid://" .. tostring(id)
+    local load = humanoid:LoadAnimation(anim)
+    load.Looped = isLooped
+    load:Play()
+end
+EmotesTab:CreateButton({Name = "Ball Spin", Callback = function() PlayEmote(14215798544, true) end})
+EmotesTab:CreateButton({Name = "Mop", Callback = function() PlayEmote(14215807283, true) end})
+EmotesTab:CreateButton({Name = "Bbs", Callback = function() PlayEmote(2178463446, true) end})
+EmotesTab:CreateButton({Name = "Bop", Callback = function() PlayEmote(8028669437, true) end})
+EmotesTab:CreateButton({Name = "Griddy", Callback = function() PlayEmote(8028694339, true) end})
+EmotesTab:CreateButton({Name = "Samurai Slash", Callback = function() PlayEmote(15249657798, true) end})
+EmotesTab:CreateButton({Name = "Goopie", Callback = function() PlayEmote(5439090599, true) end})
+EmotesTab:CreateButton({Name = "Headless", Callback = function() PlayEmote(5704065738, true) end})
+EmotesTab:CreateButton({Name = "Moon", Callback = function() PlayEmote(14216002323, true) end})
+EmotesTab:CreateButton({Name = "Neighborly Hang", Callback = function() PlayEmote(11006145037, true) end})
+EmotesTab:CreateButton({Name = "Headdribble", Callback = function() PlayEmote(11006158861, true) end})
+EmotesTab:CreateButton({Name = "Worm", Callback = function() PlayEmote(3471311681, true) end})
+EmotesTab:CreateButton({Name = "Hacky Sack", Callback = function() PlayEmote(14220954146, true) end})
+EmotesTab:CreateButton({Name = "Goodnight", Callback = function() PlayEmote(15375772247, true) end})
+EmotesTab:CreateButton({Name = "Head Spin", Callback = function() PlayEmote(14920821886, true) end})
+EmotesTab:CreateButton({Name = "Keep It Hot", Callback = function() PlayEmote(85267023718407, true) end})
+EmotesTab:CreateButton({Name = "Peanut Butter Jelly Time", Callback = function() PlayEmote(5433555683, true) end})
+EmotesTab:CreateButton({Name = "Take The L", Callback = function() PlayEmote(2293391158, true) end})
+EmotesTab:CreateButton({Name = "Dimension", Callback = function() PlayEmote(5618747341, true) end})
+EmotesTab:CreateButton({Name = "Memphis Pregame", Callback = function() PlayEmote(14138482621, true) end})
+EmotesTab:CreateButton({Name = "Sturdy", Callback = function() PlayEmote(14215791622, true) end})
+EmotesTab:CreateButton({Name = "Smith Knicks", Callback = function() PlayEmote(15312473847, true) end})
+EmotesTab:CreateButton({Name = "Stop All", Callback = function() for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do track:Stop() end end})
+
+-- [[ SPOOFER TAB ]]
+SpooferTab:CreateSection("Banners")
+local bans = {
+    ["TikTok"] = "14308515186",
+    ["YT"] = "13181356130", 
+    ["Twitch"] = "13284240977", 
+    ["Staff"] = "13284239964"
+}
+for n, id in pairs(bans) do
+    SpooferTab:CreateButton({Name = n, Callback = function() currentBannerID = "rbxassetid://" .. id end})
+end
+
+-- [[ HEARTBEAT LOOP ]]
+game:GetService("RunService").Heartbeat:Connect(function()
+    if not root or not lp.Character then return end
+    if hitboxEnabled then
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                p.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                p.Character.HumanoidRootPart.Transparency = hitboxTransparency
+            end
+        end
+    end
+    for _, v in pairs(lp.Character:GetDescendants()) do
+        if v:IsA("ImageLabel") and v.Visible and v.AbsoluteSize.X > v.AbsoluteSize.Y then 
+            v.Image = currentBannerID 
+        end
+    end
+end)
