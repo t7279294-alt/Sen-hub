@@ -86,6 +86,7 @@ EmotesTab:CreateButton({Name = "Dimension", Callback = function() PlayEmote(5618
 EmotesTab:CreateButton({Name = "Memphis Pregame", Callback = function() PlayEmote(14138482621, true) end})
 EmotesTab:CreateButton({Name = "Sturdy", Callback = function() PlayEmote(14215791622, true) end})
 EmotesTab:CreateButton({Name = "Smith Knicks", Callback = function() PlayEmote(15312473847, true) end})
+EmotesTab:CreateButton({Name = "Gronk Spike", Callback = function() PlayEmote(13782932458, true) end})
 EmotesTab:CreateButton({Name = "Stop All", Callback = function() for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do track:Stop() end end})
 
 -- [[ SPOOFER TAB ]]
