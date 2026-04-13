@@ -1,120 +1,314 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local oldError = error; local oldWarn = warn; error = function(...) end; warn = function(...) end
+if getconnections then pcall(function() for _, c in pairs(getconnections(game:GetService("LogService").MessageOut)) do c:Disable() end end) end
 
--- Console Privacy
-print = function() end
-warn = function() end
-error = function() end
-local Window = Rayfield:CreateWindow({
-   Name = "Sen Hub | Universal Football",
-   LoadingTitle = "Sen Hub",
-   LoadingSubtitle = "by Senkotuo",
-   ConfigurationSaving = {Enabled = true, FolderName = "SenHub", FileName = "Config"},
-   KeySystem = false  -- Key system disabled
-})
--- [[ VARIABLES ]]
-local lp = game.Players.LocalPlayer
-local char = lp.Character or lp.CharacterAdded:Wait()
-local humanoid = char:WaitForChild("Humanoid")
-local root = char:WaitForChild("HumanoidRootPart")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local Debris = game:GetService("Debris")
+local TweenService = game:GetService("TweenService")
+local plr = Players.LocalPlayer
+local character = plr.Character or plr.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+local head = character:WaitForChild("Head")
 
-local currentBannerID = "rbxassetid://13181356130" 
-local equippedAccessories = {}
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local Window = Fluent:CreateWindow({ Title = "Sen Hub CW", TabWidth = 160, Size = UDim2.fromOffset(580, 460), Acrylic = true, Theme = "Dark", MinimizeKey = Enum.KeyCode.RightControl })
+local Tabs = { Fire = Window:AddTab({ Title = "fire", Icon = "zap" }), Player = Window:AddTab({ Title = "player", Icon = "user" }), Emotes = Window:AddTab({ Title = "emotes", Icon = "smile" }), Items = Window:AddTab({ Title = "items", Icon = "star" }) }
 
--- [[ SETTINGS ]]
-local hitboxEnabled = false
-local hitboxSize = 2
-local hitboxTransparency = 0.5
-local boostEnabled = false
-local boostPower = 90
+-- STATE
+local legitPVEnabled, pullStrength, isPulling = false, 0.01, false
+local headsizeEnabled, headsizeValue, headsizeTransparency, headsizeParts = false, 5, 0.5, {}
+local autoDBEnabled, autoDBStrength, autoDBTarget = false, 0.5, nil
+local boostTechEnabled, boostHeight, canBoost = false, 50, true
+local flingEnabled, flingDelay, flingPower, canFling, flingTimers = false, 0, 100, true, {}
+local fallSpeedEnabled, fallSpeedMultiplier, activeJumpConnections, canJump = false, 1, {}, true
+local jumpPowerEnabled, jumpPowerValue, jumpPowerKeybind = false, 50, Enum.KeyCode.Space
+local jumpSpeedEnabled, jumpSpeedMultiplier = false, 2
+local bodyHitboxEnabled, bodyHitboxSize, bodyHitboxTransparency, bodyHitboxParts = false, 5, 0.5, {}
+local tackleReachEnabled, tackleReachDistance, tackleReachConnection = false, 5, nil
+local nameChangeEnabled, customName, processedObjects = false, "", {}
+local EquippedHats = {}
+local speedOn, normalSpeed, boostedSpeed = false, 16, 21.3
+local gravBoostOn, gravBoostPower, gravBoostCooldown, lastBoostTimes, boostRequested = false, 67, 0.15, {}, false
+local stickyOn, stickyTarget, stickyConn = false, nil, nil
+local autoTTBEnabled = false
+local ttbPower = 80
+local ttbCooldown = 0.5
+local canTTB = true
+local equipped = {}
 
-local stickySettings = {
-    enabled = false,
-    strength = 0.5,
-    jumpDetectionDistance = 25,
-    stickDistance = 8,
-    isStuck = false,
-    targetHead = nil
+-- MESH/CLOTHING
+local MESH_ITEMS = {
+    Coldstare={mesh="rbxassetid://5063577434",tex="rbxassetid://5047708728",par="UpperTorso",scl=Vector3.new(1,1,1),off=CFrame.new(0,0.15,0.65)*CFrame.Angles(0,math.rad(180),0)},
+    DesertVest={mesh="rbxassetid://11755494017",tex="rbxassetid://11755494031",par="UpperTorso",scl=Vector3.new(0.73,1.13,0.75),off=CFrame.new(0,0,-0.05)},
+    DRC={mesh="rbxassetid://6541224713",tex="rbxassetid://7833727918",par="Head",scl=Vector3.new(1.01,1.01,1.01),off=CFrame.new(0,0.91,0.11)*CFrame.Angles(0,math.rad(90),0)},
+    Keff={mesh="rbxassetid://14156626934",tex="rbxassetid://14156781317",par="Head",scl=Vector3.new(0.9,0.9,0.9),off=CFrame.new(-0.06,0.38,0.1)*CFrame.Angles(0,math.rad(180),0)},
+    SeeingStars={mesh="rbxassetid://62139052",tex="rbxassetid://62139103",par="Head",scl=Vector3.new(1.05,1.05,1.05),off=CFrame.new(0,0.05,-0.45)},
+    Subarctic={mesh="rbxassetid://39200112",tex="rbxassetid://39200088",par="Head",scl=Vector3.new(1.02,1.02,1.02),off=CFrame.new(0,0.27,0)},
+    TacticalVest={mesh="rbxassetid://11754584493",tex="rbxassetid://11754584535",par="UpperTorso",scl=Vector3.new(0.73,1.13,0.75),off=CFrame.new(0,0,-0.05)},
+    TacticalVest={mesh="rbxassetid://11754584493",tex="rbxassetid://11754584535",par="UpperTorso",scl=Vector3.new(0.73,1.13,0.75),off=CFrame.new(0,0,-0.05)}, 
 }
-
--- [[ TABS ]]
-local CompTab = Window:CreateTab("Comp")
-local EmotesTab = Window:CreateTab("Emotes")
-local SpooferTab = Window:CreateTab("Spoofers")
-
--- [[ COMP TAB ]]
-CompTab:CreateSection("--- Auto TTB (Sticky) ---")
-CompTab:CreateToggle({Name = "Enable Auto TTB", CurrentValue = false, Callback = function(V) stickySettings.enabled = V end})
-CompTab:CreateSlider({Name = "Sticky Strength", Range = {0.1, 1}, Increment = 0.05, CurrentValue = 0.5, Callback = function(V) stickySettings.strength = V end})
-
-CompTab:CreateSection("--- Hitbox Expander ---")
-CompTab:CreateToggle({Name = "Hitbox Enabled", CurrentValue = false, Callback = function(V) hitboxEnabled = V end})
-CompTab:CreateSlider({Name = "Hitbox Size", Range = {2, 30}, Increment = 1, CurrentValue = 2, Callback = function(V) hitboxSize = V end})
-
-CompTab:CreateSection("--- Boost Tech ---")
-CompTab:CreateToggle({Name = "Enable Boost", CurrentValue = false, Callback = function(V) boostEnabled = V end})
-CompTab:CreateSlider({Name = "Boost Power", Range = {50, 250}, Increment = 5, CurrentValue = 90, Callback = function(V) boostPower = V end})
-
--- [[ EMOTES TAB ]]
-EmotesTab:CreateSection("Animations")
-local function PlayEmote(id, isLooped)
-    for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do track:Stop() end
-    local anim = Instance.new("Animation")
-    anim.AnimationId = "rbxassetid://" .. tostring(id)
-    local load = humanoid:LoadAnimation(anim)
-    load.Looped = isLooped
-    load:Play()
-end
-EmotesTab:CreateButton({Name = "Ball Spin", Callback = function() PlayEmote(14215798544, true) end})
-EmotesTab:CreateButton({Name = "Mop", Callback = function() PlayEmote(14215807283, true) end})
-EmotesTab:CreateButton({Name = "Bbs", Callback = function() PlayEmote(2178463446, true) end})
-EmotesTab:CreateButton({Name = "Bop", Callback = function() PlayEmote(8028669437, true) end})
-EmotesTab:CreateButton({Name = "Griddy", Callback = function() PlayEmote(8028694339, true) end})
-EmotesTab:CreateButton({Name = "Samurai Slash", Callback = function() PlayEmote(15249657798, true) end})
-EmotesTab:CreateButton({Name = "Goopie", Callback = function() PlayEmote(5439090599, true) end})
-EmotesTab:CreateButton({Name = "Headless", Callback = function() PlayEmote(5704065738, true) end})
-EmotesTab:CreateButton({Name = "Moon", Callback = function() PlayEmote(14216002323, true) end})
-EmotesTab:CreateButton({Name = "Neighborly Hang", Callback = function() PlayEmote(11006145037, true) end})
-EmotesTab:CreateButton({Name = "Headdribble", Callback = function() PlayEmote(11006158861, true) end})
-EmotesTab:CreateButton({Name = "Worm", Callback = function() PlayEmote(3471311681, true) end})
-EmotesTab:CreateButton({Name = "Hacky Sack", Callback = function() PlayEmote(14220954146, true) end})
-EmotesTab:CreateButton({Name = "Goodnight", Callback = function() PlayEmote(15375772247, true) end})
-EmotesTab:CreateButton({Name = "Head Spin", Callback = function() PlayEmote(14920821886, true) end})
-EmotesTab:CreateButton({Name = "Keep It Hot", Callback = function() PlayEmote(85267023718407, true) end})
-EmotesTab:CreateButton({Name = "Peanut Butter Jelly Time", Callback = function() PlayEmote(5433555683, true) end})
-EmotesTab:CreateButton({Name = "Take The L", Callback = function() PlayEmote(2293391158, true) end})
-EmotesTab:CreateButton({Name = "Dimension", Callback = function() PlayEmote(5618747341, true) end})
-EmotesTab:CreateButton({Name = "Memphis Pregame", Callback = function() PlayEmote(14138482621, true) end})
-EmotesTab:CreateButton({Name = "Sturdy", Callback = function() PlayEmote(14215791622, true) end})
-EmotesTab:CreateButton({Name = "Smith Knicks", Callback = function() PlayEmote(15312473847, true) end})
-EmotesTab:CreateButton({Name = "Gronk Spike", Callback = function() PlayEmote(13782932458, true) end})
-EmotesTab:CreateButton({Name = "Stop All", Callback = function() for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do track:Stop() end end})
-
--- [[ SPOOFER TAB ]]
-SpooferTab:CreateSection("Banners")
-local bans = {
-    ["TikTok"] = "14308515186",
-    ["YT"] = "13181356130", 
-    ["Twitch"] = "13284240977", 
-    ["Staff"] = "13284239964"
+local CLOTHING_ITEMS = {
+    ["Black World Tour Shirt"]={type="Shirt",assetId=15335037852},["Pink World Tour Shirt"]={type="Shirt",assetId=15334978300},
+    ["King Shirt"]={type="Shirt",assetId=6296265575},["King Pants"]={type="Pants",assetId=10725550576},
+    ["Black Bandana Shorts"]={type="Pants",assetId=15020463274},
+    ["White CW Set"]={type="Accessory",assetId=97230132426750},["Black CW Headphones"]={type="Accessory",assetId=93874449800600},
+    ["Black CW Shades"]={type="Accessory",assetId=111757672542159},
+    ["Star Chain"]={type="Accessory",assetId=12269196297},
+    ["LavaSceneHair"]={type="Accessory",assetId=113527009413079},
+    ["AltScene"]={type="Accessory",assetId=135147917900203},
+    ["Grey Flare"]={type="Shirt",assetId=15345367906},
+    ["Black Flare"]={type="Shirt",assetId=15345348842},
+    ["Red Flare"]={type="Shirt",assetId=15345347397},
+    ["Acid Flare"]={type="Shirt",assetId=15345352095},
+    ["Pastel Flare"]={type="Shirt",assetId=15345355082},
+    ["Orange Flare"]={type="Shirt",assetId=15345357354},
+    ["White World Tour"]={type="Shirt",assetId=15334975460},
+    ["Hooded Jean Jacket"]={type="Shirt",assetId=15334917844},
 }
-for n, id in pairs(bans) do
-    SpooferTab:CreateButton({Name = n, Callback = function() currentBannerID = "rbxassetid://" .. id end})
+local Hats = {
+    {Name="Ushanka",Id=12710415119,Type="Normal",Attach="Head"},
+    {Name="Subarctic Commando",Id=100235743603545,Type="Commando",Attach="Head"},
+    {Name="Dark Ruby Crown",Id=7912127597,Type="Normal",Attach="Head"},
+    {Name="Midnight Commando",Id=259424866,Type="Commando",Attach="Head"},
+    {Name="Arctic Commando",Id=87396780155106,Type="Commando",Attach="Head"},
+    {Name="Blue CW Headphones",Id=1743903423,Type="Headphones",Attach="Head"},
+    {Name="White CW Headphones",Id=97230132426750,Type="Headphones",Attach="Head"},
+    {Name="Designer Keffyeh",Id=14157118140,Type="Normal",Attach="Head"},
+    {Name="Royal Crown",Id=11453654,Type="Normal",Attach="Head"},
+    {Name="Black CW Headphones",Id=93874449800600,Type="Headphones",Attach="Head"},
+}
+local HatOffsets = { [100235743603545]=CFrame.new(0,0.2,0)*CFrame.Angles(0,math.rad(180),0), [259424866]=CFrame.new(0,0.1,0), [7912127597]=CFrame.new(0,0.8,0.1)*CFrame.Angles(0,math.rad(90),0), [87396780155106]=CFrame.new(0,0.1,0)*CFrame.Angles(0,math.rad(180),0) }
+
+-- BALL FINDER
+local _bc,_bt=nil,0
+local function getFootball()
+    local now=tick(); if _bc and _bc.Parent and _bc:IsDescendantOf(game) and (now-_bt)<0.5 then return _bc end; _bc=nil; local f=nil
+    local pm=Workspace:FindFirstChild("ParkMap")
+    if pm and pm:FindFirstChild("Replicated") then local flds=pm.Replicated:FindFirstChild("Fields"); if flds then for _,fn in ipairs({"LeftField","RightField","BLeftField","BRightField","HighField","TLeftField","TRightField"}) do local fld=flds:FindFirstChild(fn); if fld and fld:FindFirstChild("Replicated") then local fb=fld.Replicated:FindFirstChild("Football"); if fb and fb:IsA("BasePart") then f=fb; break end end end end end
+    if not f then local pmm=Workspace:FindFirstChild("ParkMatchMap"); if pmm and pmm:FindFirstChild("Replicated") then local f2=pmm.Replicated:FindFirstChild("Fields"); if f2 and f2:FindFirstChild("MatchField") then local r2=f2.MatchField:FindFirstChild("Replicated"); if r2 then local fb=r2:FindFirstChild("Football"); if fb and fb:IsA("BasePart") then f=fb end end end end end
+    if not f then for _,folder in ipairs({Workspace:FindFirstChild("Games"),Workspace:FindFirstChild("MiniGames")}) do if folder then for _,gi in ipairs(folder:GetChildren()) do local rep=gi:FindFirstChild("Replicated"); if rep then local kf=rep:FindFirstChild("918f5408-d86a-4fb8-a88c-5cab57410acf"); if kf and kf:IsA("BasePart") then f=kf; break end; for _,item in ipairs(rep:GetChildren()) do if item:IsA("BasePart") and item.Name=="Football" then f=item; break end end; if f then break end end end; if f then break end end end end
+    if not f then for _,p in ipairs(Players:GetPlayers()) do if p.Character then local fb=p.Character:FindFirstChild("Football"); if fb and fb:IsA("BasePart") then f=fb; break end end end end
+    if not f then for _,o in ipairs(Workspace:GetChildren()) do if o.Name=="Football" and o:IsA("BasePart") then f=o; break end end end
+    _bc=f; _bt=now; return f
 end
 
--- [[ HEARTBEAT LOOP ]]
-game:GetService("RunService").Heartbeat:Connect(function()
-    if not root or not lp.Character then return end
-    if hitboxEnabled then
-        for _, p in pairs(game.Players:GetPlayers()) do
-            if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                p.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                p.Character.HumanoidRootPart.Transparency = hitboxTransparency
-            end
+-- HELPERS
+local function getCharacter() local c=plr.Character; if not c then return nil,nil,nil end; local r=c:FindFirstChild("HumanoidRootPart"); local h=c:FindFirstChild("Humanoid"); if r and h and h.Health>0 then return c,r,h end; return nil,nil,nil end
+local function findNearestPlayer() local _,root=getCharacter(); if not root then return nil end; local n,s=nil,math.huge; for _,p in ipairs(Players:GetPlayers()) do if p~=plr and p.Character then local hrp=p.Character:FindFirstChild("HumanoidRootPart"); if hrp then local d=(hrp.Position-root.Position).Magnitude; if d<s then s=d; n=p end end end end; return n end
+
+-- LEGIT PV (original style — direct lerp, no freeze)
+local function pullToFootball()
+    local ball = getFootball()
+    if not ball then return end
+    local char = plr.Character
+    if not char then return end
+    local rp = char:FindFirstChild("HumanoidRootPart")
+    if not rp then return end
+    rp.CFrame = rp.CFrame:Lerp(CFrame.new(ball.Position), pullStrength)
+end
+local lastPull=0
+UserInputService.InputBegan:Connect(function(i,g) if g then return end; local isM1 = i.UserInputType==Enum.UserInputType.MouseButton1; local isR2 = i.UserInputType==Enum.UserInputType.Gamepad1 and i.KeyCode==Enum.KeyCode.ButtonR2; if (isM1 or isR2) and legitPVEnabled then isPulling=true end end)
+UserInputService.InputEnded:Connect(function(i) local isM1 = i.UserInputType==Enum.UserInputType.MouseButton1; local isR2 = i.UserInputType==Enum.UserInputType.Gamepad1 and i.KeyCode==Enum.KeyCode.ButtonR2; if isM1 or isR2 then isPulling=false end end)
+RunService.Heartbeat:Connect(function() if isPulling and legitPVEnabled then local n=tick(); if n-lastPull>=0.03 then pullToFootball(); lastPull=n end end end)
+
+-- EMOTE
+local EmoteSettings={["Fade In"]=0.1,["Fade Out"]=0.1,["Weight"]=1,["Speed"]=1,["Looped"]=true,["Stop Other Animations On Play"]=true}
+local CurrentTrack=nil
+local function LoadEmote(id) if CurrentTrack then CurrentTrack:Stop(EmoteSettings["Fade Out"]) end; local animId; local ok,result=pcall(function() return game:GetObjects("rbxassetid://"..tostring(id)) end); if ok and result and #result>0 then local a=result[1]; animId=a:IsA("Animation") and a.AnimationId or "rbxassetid://"..tostring(id) else animId="rbxassetid://"..tostring(id) end; local na=Instance.new("Animation"); na.AnimationId=animId; local nt=humanoid:LoadAnimation(na); nt.Priority=Enum.AnimationPriority.Action4; local w=EmoteSettings["Weight"]; if w==0 then w=0.001 end; if EmoteSettings["Stop Other Animations On Play"] then for _,t in pairs(humanoid.Animator:GetPlayingAnimationTracks()) do if t.Priority~=Enum.AnimationPriority.Action4 then t:Stop() end end end; nt:Play(EmoteSettings["Fade In"],w,EmoteSettings["Speed"]); CurrentTrack=nt; CurrentTrack.Priority=Enum.AnimationPriority.Action4; CurrentTrack.Looped=EmoteSettings["Looped"]; return nt end
+local function StopEmote() if CurrentTrack then pcall(function() CurrentTrack:Stop(EmoteSettings["Fade Out"]) end); CurrentTrack=nil end end
+
+-- HATS
+local function ResetHats() for _,obj in ipairs(EquippedHats) do if obj and obj.Parent then obj:Destroy() end end; table.clear(EquippedHats) end
+local function EquipHat(assetId, hatType, attachTo)
+    local ok, model = pcall(function() return game:GetObjects("rbxassetid://" .. tostring(assetId))[1] end)
+    if not ok or not model then return end
+    local offset = HatOffsets[assetId] or (hatType == "Commando" and CFrame.new(0,0.2,0)*CFrame.Angles(0,math.rad(180),0) or CFrame.new(0,0.3,0)*CFrame.Angles(0,math.rad(180),0))
+    for _, part in ipairs(model:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Anchored = false; part.CanCollide = false; part.Massless = true
+            part.CFrame = head.CFrame * offset; part.Parent = character
+            local weld = Instance.new("WeldConstraint"); weld.Part0 = head; weld.Part1 = part; weld.Parent = part
+            table.insert(EquippedHats, part)
         end
     end
-    for _, v in pairs(lp.Character:GetDescendants()) do
-        if v:IsA("ImageLabel") and v.Visible and v.AbsoluteSize.X > v.AbsoluteSize.Y then 
-            v.Image = currentBannerID 
+end
+
+--  ACCESSORIES
+local function guessSlot(n) local nm=n:lower(); if nm:find("shade") or nm:find("glass") then return "FaceAccessory" end; if nm:find("hair") or nm:find("scene") or nm:find("lava") or nm:find("alt") then return "HairAccessory" end; if nm:find("chain") then return "NeckAccessory" end; return "HatAccessory" end
+local function equipMesh(name) if equipped[name] then return end; local d=MESH_ITEMS[name]; if not d then return end; local char=plr.Character; if not char then return end; local par=char:FindFirstChild(d.par); if not par and d.par=="UpperTorso" then par=char:FindFirstChild("Torso") end; if not par and d.par=="LowerTorso" then par=char:FindFirstChild("Torso") end; if not par then return end; local part=Instance.new("Part"); part.Name=name; part.Size=Vector3.new(1,1,1); part.CanCollide=false; part.Anchored=false; part.Massless=true; part.Parent=char; local m=Instance.new("SpecialMesh"); m.MeshType=Enum.MeshType.FileMesh; m.MeshId=d.mesh; m.TextureId=d.tex; m.Scale=d.scl; m.Parent=part; local w=Instance.new("Motor6D"); w.Part0=par; w.Part1=part; w.C0=d.off; w.Parent=par; part.CFrame=par.CFrame*d.off; equipped[name]={part} end
+local function equipClothing(name) if equipped[name] then return end; local d=CLOTHING_ITEMS[name]; if not d then return end; local char=plr.Character; if not char then return end; local hum=char:FindFirstChildOfClass("Humanoid"); local idStr=tostring(d.assetId); local parts={}; local ok,result=pcall(function() return game:GetObjects("rbxassetid://"..idStr) end); if ok and result then for _,obj in pairs(result) do local items={obj}; pcall(function() for _,c in pairs(obj:GetDescendants()) do table.insert(items,c) end end); for _,item in pairs(items) do if item:IsA("Shirt") and d.type=="Shirt" then local old=char:FindFirstChildOfClass("Shirt"); if old then old:Destroy() end; item.Parent=char; table.insert(parts,item); break elseif item:IsA("Pants") and d.type=="Pants" then local old=char:FindFirstChildOfClass("Pants"); if old then old:Destroy() end; item.Parent=char; table.insert(parts,item); break elseif (item:IsA("Accessory") or item:IsA("Accoutrement")) and d.type=="Accessory" then item.Parent=char; if hum then pcall(function() hum:AddAccessory(item) end) end; table.insert(parts,item); break end end; if #parts>0 then break end end end; if #parts==0 and d.type=="Accessory" then pcall(function() local desc=Instance.new("HumanoidDescription"); desc[guessSlot(name)]=idStr; local dummy=Players:CreateHumanoidModelFromDescription(desc,Enum.HumanoidRigType.R15,Enum.AssetTypeVerification.ClientOnly); desc:Destroy(); if dummy then for _,ch in pairs(dummy:GetChildren()) do if ch:IsA("Accessory") then ch.Parent=char; if hum then pcall(function() hum:AddAccessory(ch) end) end; table.insert(parts,ch) end end; dummy:Destroy() end end) end; if #parts==0 then if d.type=="Shirt" then local old=char:FindFirstChildOfClass("Shirt"); if old then old:Destroy() end; local s=Instance.new("Shirt"); s.ShirtTemplate="rbxassetid://"..idStr; s.Parent=char; table.insert(parts,s) elseif d.type=="Pants" then local old=char:FindFirstChildOfClass("Pants"); if old then old:Destroy() end; local p=Instance.new("Pants"); p.PantsTemplate="rbxassetid://"..idStr; p.Parent=char; table.insert(parts,p) end end; if #parts>0 then equipped[name]=parts end end
+local function equipItem(n) if MESH_ITEMS[n] then equipMesh(n) elseif CLOTHING_ITEMS[n] then equipClothing(n) end end
+local function unequipItem(n) if not equipped[n] then return end; for _,p in ipairs(equipped[n]) do if typeof(p)=="Instance" and p.Parent then p:Destroy() end end; equipped[n]=nil end
+
+-- HEADSIZE
+local function setupHeadsize() for _,p in pairs(headsizeParts) do if p and p.Parent then p:Destroy() end end; headsizeParts={}; if not headsizeEnabled then return end; for _,player in pairs(Players:GetPlayers()) do if player~=plr and player.Character then local ph=player.Character:FindFirstChild("Head"); if ph then local ex=player.Character:FindFirstChild("STZHeadsize"); if ex then ex:Destroy() end; local hp=Instance.new("Part"); hp.Name="STZHeadsize"; hp.Size=Vector3.new(headsizeValue,headsizeValue,headsizeValue); hp.Color=Color3.fromRGB(255,200,200); hp.Material=Enum.Material.ForceField; hp.Transparency=headsizeTransparency; hp.CanCollide=true; hp.Anchored=false; hp.Massless=true; hp.CFrame=ph.CFrame; hp.Parent=player.Character; local w=Instance.new("WeldConstraint"); w.Part0=hp; w.Part1=ph; w.Parent=hp; table.insert(headsizeParts,hp) end end end end
+RunService.Heartbeat:Connect(function() if not headsizeEnabled then return end; for _,player in pairs(Players:GetPlayers()) do if player~=plr and player.Character then local ph=player.Character:FindFirstChild("Head"); local ex=player.Character:FindFirstChild("STZHeadsize"); if ph and not ex then local hp=Instance.new("Part"); hp.Name="STZHeadsize"; hp.Size=Vector3.new(headsizeValue,headsizeValue,headsizeValue); hp.Color=Color3.fromRGB(255,200,200); hp.Material=Enum.Material.ForceField; hp.Transparency=headsizeTransparency; hp.CanCollide=true; hp.Anchored=false; hp.Massless=true; hp.CFrame=ph.CFrame; hp.Parent=player.Character; local w=Instance.new("WeldConstraint"); w.Part0=hp; w.Part1=ph; w.Parent=hp; table.insert(headsizeParts,hp) elseif ex then ex.Transparency=headsizeTransparency; ex.Size=Vector3.new(headsizeValue,headsizeValue,headsizeValue) end end end end)
+
+-- TACKLE REACH
+local function setupTackleReach() if tackleReachConnection then tackleReachConnection:Disconnect() end; if tackleReachEnabled then tackleReachConnection=RunService.Heartbeat:Connect(function() for _,tp in ipairs(Players:GetPlayers()) do if tp~=plr and tp.Character then for _,desc in ipairs(tp.Character:GetDescendants()) do if desc.Name=="FootballGrip" then local gid=plr:FindFirstChild("Replicated") and plr.Replicated:FindFirstChild("GameID") and plr.Replicated.GameID.Value; if gid then local gf=(Workspace:FindFirstChild("Games") and Workspace.Games:FindFirstChild(gid)) or (Workspace:FindFirstChild("MiniGames") and Workspace.MiniGames:FindFirstChild(gid)); if gf then local hbf=gf:FindFirstChild("Replicated") and gf.Replicated:FindFirstChild("Hitboxes"); if hbf then local hb=hbf:FindFirstChild(tp.Name); if hb and rootPart and (hb.Position-rootPart.Position).Magnitude<=tackleReachDistance then hb.Position=rootPart.Position; task.wait(0.1); local eHrp=tp.Character:FindFirstChild("HumanoidRootPart"); if eHrp then hb.Position=eHrp.Position end end end end end end end end end end) end end
+
+-- BODY HITBOX
+local function setupBodyHitbox() for _,p in pairs(bodyHitboxParts) do if p and p.Parent then p:Destroy() end end; bodyHitboxParts={}; if not bodyHitboxEnabled then return end; for _,player in pairs(Players:GetPlayers()) do if player~=plr and player.Character then local torso=player.Character:FindFirstChild("UpperTorso") or player.Character:FindFirstChild("Torso"); if torso then local ex=player.Character:FindFirstChild("STZBodyHB"); if ex then ex:Destroy() end; local hp=Instance.new("Part"); hp.Name="STZBodyHB"; hp.Size=Vector3.new(bodyHitboxSize,bodyHitboxSize,bodyHitboxSize); hp.Color=Color3.fromRGB(255,100,100); hp.Material=Enum.Material.ForceField; hp.Transparency=bodyHitboxTransparency; hp.CanCollide=true; hp.Anchored=false; hp.Massless=true; hp.CFrame=torso.CFrame; hp.Parent=player.Character; local w=Instance.new("WeldConstraint"); w.Part0=hp; w.Part1=torso; w.Parent=hp; table.insert(bodyHitboxParts,hp) end end end end
+RunService.Heartbeat:Connect(function() if not bodyHitboxEnabled then return end; for _,player in pairs(Players:GetPlayers()) do if player~=plr and player.Character then local torso=player.Character:FindFirstChild("UpperTorso") or player.Character:FindFirstChild("Torso"); local ex=player.Character:FindFirstChild("STZBodyHB"); if torso and not ex then local hp=Instance.new("Part"); hp.Name="STZBodyHB"; hp.Size=Vector3.new(bodyHitboxSize,bodyHitboxSize,bodyHitboxSize); hp.Color=Color3.fromRGB(255,100,100); hp.Material=Enum.Material.ForceField; hp.Transparency=bodyHitboxTransparency; hp.CanCollide=true; hp.Anchored=false; hp.Massless=true; hp.CFrame=torso.CFrame; hp.Parent=player.Character; local w=Instance.new("WeldConstraint"); w.Part0=hp; w.Part1=torso; w.Parent=hp; table.insert(bodyHitboxParts,hp) elseif ex then ex.Transparency=bodyHitboxTransparency; ex.Size=Vector3.new(bodyHitboxSize,bodyHitboxSize,bodyHitboxSize) end end end end)
+
+-- AUTO DB
+task.spawn(function() while true do task.wait(2); if autoDBEnabled then autoDBTarget=findNearestPlayer() end end end)
+RunService.RenderStepped:Connect(function() if autoDBEnabled and autoDBTarget and autoDBTarget.Character then local c,r=getCharacter(); if not r then return end; local hrp=autoDBTarget.Character:FindFirstChild("HumanoidRootPart"); if hrp then local d=5-(autoDBStrength*4); local wp=(hrp.CFrame*CFrame.new(0,0,d)).Position; local h=c:FindFirstChild("Humanoid"); if h then h:MoveTo(wp) end end end end)
+
+-- BOOST TECH
+local function setupBoostTech(char) if not char or not boostTechEnabled then return end; local r=char:WaitForChild("HumanoidRootPart",5); if not r then return end; r.Touched:Connect(function(hit) if not boostTechEnabled or not canBoost then return end; local om=hit:FindFirstAncestorWhichIsA("Model"); if om and om~=char and om:FindFirstChild("Humanoid") then if r.AssemblyLinearVelocity.Y<-5 then canBoost=false; local bv=Instance.new("BodyVelocity"); bv.Velocity=Vector3.new(r.AssemblyLinearVelocity.X,boostHeight,r.AssemblyLinearVelocity.Z); bv.MaxForce=Vector3.new(0,math.huge,0); bv.P=5000; bv.Parent=r; Debris:AddItem(bv,0.25); task.delay(1.5,function() canBoost=true end) end end end) end
+
+-- FLING
+local function setupFling(char) if not char or not flingEnabled then return end; local r=char:WaitForChild("HumanoidRootPart",5); if not r then return end; r.Touched:Connect(function(hit) if not flingEnabled or not canFling then return end; local om=hit:FindFirstAncestorWhichIsA("Model"); if om and om~=char and om:FindFirstChild("Humanoid") then local pid=Players:GetPlayerFromCharacter(om); if not pid or flingTimers[pid] then return end; canFling=false; flingTimers[pid]=true; if flingDelay==0 then if r and r.Parent then local look=r.CFrame.LookVector; local bv=Instance.new("BodyVelocity"); bv.Velocity=Vector3.new(0,flingPower*0.5,0)+(-look*flingPower); bv.MaxForce=Vector3.new(math.huge,math.huge,math.huge); bv.P=5000; bv.Parent=r; Debris:AddItem(bv,0.15) end; flingTimers[pid]=nil; task.delay(1,function() canFling=true end); return end; local st=tick(); local tc; tc=RunService.Heartbeat:Connect(function() local still=false; for _,part in pairs(r:GetTouchingParts()) do if part:IsDescendantOf(om) then still=true; break end end; if not still then tc:Disconnect(); flingTimers[pid]=nil; canFling=true; return end; if tick()-st>=flingDelay then if r and r.Parent then local look=r.CFrame.LookVector; local bv=Instance.new("BodyVelocity"); bv.Velocity=Vector3.new(0,flingPower*0.5,0)+(-look*flingPower); bv.MaxForce=Vector3.new(math.huge,math.huge,math.huge); bv.P=5000; bv.Parent=r; Debris:AddItem(bv,0.15) end; tc:Disconnect(); flingTimers[pid]=nil; task.delay(1,function() canFling=true end) end end) end end) end
+
+-- FALL SPEED
+UserInputService.JumpRequest:Connect(function() if fallSpeedEnabled and canJump then local _,root=getCharacter(); if root then root.AssemblyLinearVelocity=Vector3.new(root.AssemblyLinearVelocity.X,50,root.AssemblyLinearVelocity.Z); local jid=tick(); local isJ=true; activeJumpConnections[jid]=RunService.Heartbeat:Connect(function() local _,cr=getCharacter(); if not cr or not isJ then if activeJumpConnections[jid] then activeJumpConnections[jid]:Disconnect(); activeJumpConnections[jid]=nil end; return end; local yv=cr.AssemblyLinearVelocity.Y; if yv<0 then cr.AssemblyLinearVelocity=Vector3.new(cr.AssemblyLinearVelocity.X,yv*fallSpeedMultiplier,cr.AssemblyLinearVelocity.Z) end; if math.abs(yv)<2 and yv>-5 then task.wait(0.1); if cr and math.abs(cr.AssemblyLinearVelocity.Y)<2 then isJ=false; if activeJumpConnections[jid] then activeJumpConnections[jid]:Disconnect(); activeJumpConnections[jid]=nil end end end end); canJump=false; task.delay(0.5,function() canJump=true end) end end end)
+
+-- JUMP POWER
+UserInputService.InputBegan:Connect(function(i,g) if g then return end; if jumpPowerEnabled and i.KeyCode==jumpPowerKeybind then local _,root=getCharacter(); if root then root.AssemblyLinearVelocity=Vector3.new(root.AssemblyLinearVelocity.X,jumpPowerValue,root.AssemblyLinearVelocity.Z) end end end)
+
+-- JUMP SPEED
+UserInputService.JumpRequest:Connect(function() if jumpSpeedEnabled and canJump then local _,root=getCharacter(); if root then root.AssemblyLinearVelocity=Vector3.new(root.AssemblyLinearVelocity.X,50*jumpSpeedMultiplier,root.AssemblyLinearVelocity.Z); local jid=tick(); local isJ=true; activeJumpConnections[jid]=RunService.Heartbeat:Connect(function() local _,cr=getCharacter(); if not cr or not isJ then if activeJumpConnections[jid] then activeJumpConnections[jid]:Disconnect(); activeJumpConnections[jid]=nil end; return end; local yv=cr.AssemblyLinearVelocity.Y; if yv<0 then cr.AssemblyLinearVelocity=Vector3.new(cr.AssemblyLinearVelocity.X,yv*jumpSpeedMultiplier,cr.AssemblyLinearVelocity.Z) end; if math.abs(yv)<2 and yv>-5 then task.wait(0.1); if cr and math.abs(cr.AssemblyLinearVelocity.Y)<2 then isJ=false; if activeJumpConnections[jid] then activeJumpConnections[jid]:Disconnect(); activeJumpConnections[jid]=nil end end end end); canJump=false; task.delay(0.5,function() canJump=true end) end end end)
+
+-- NAME CHANGER
+local function applyToTextObject(obj) if processedObjects[obj] then return end; if obj:IsA("TextLabel") or obj:IsA("TextBox") or obj:IsA("TextButton") then if string.find(string.lower(obj.Text),string.lower(plr.Name)) or string.find(string.lower(obj.Text),string.lower(plr.DisplayName)) then obj.Text=customName; processedObjects[obj]=true; obj:GetPropertyChangedSignal("Text"):Connect(function() if obj.Text~=customName and nameChangeEnabled then obj.Text=customName end end) end end end
+local function applyNameChange() if not nameChangeEnabled then return end; for _,v in pairs(plr.PlayerGui:GetDescendants()) do applyToTextObject(v) end end
+plr.PlayerGui.DescendantAdded:Connect(function(v) if nameChangeEnabled then task.defer(function() applyToTextObject(v) end) end end)
+
+-- GRAV BOOST
+local function setupGravBoost(char) local root=char:WaitForChild("HumanoidRootPart"); root.Touched:Connect(function(hit) if not gravBoostOn or not boostRequested then return end; boostRequested=false; local oc=hit.Parent; local op=Players:GetPlayerFromCharacter(oc); if op and op~=plr then local h=oc:FindFirstChild("Head"); if h and h.CanCollide then local last=lastBoostTimes[op] or 0; if tick()-last>=gravBoostCooldown then local hum=char:FindFirstChild("Humanoid"); local md=hum and hum.MoveDirection or Vector3.zero; local bv=Instance.new("BodyVelocity"); bv.Velocity=Vector3.new(md.X*5,gravBoostPower,md.Z*5); bv.MaxForce=Vector3.new(9e9,9e9,9e9); bv.Parent=root; Debris:AddItem(bv,0.1); lastBoostTimes[op]=tick() end end end end) end
+
+-- SELFTYZ: STICKY HEAD
+local function startSticky() local target=findNearestPlayer(); if not target or not target.Character then return end; stickyTarget=target; if stickyConn then stickyConn:Disconnect() end; stickyConn=RunService.Heartbeat:Connect(function() if not stickyOn or not stickyTarget or not stickyTarget.Character then if stickyConn then stickyConn:Disconnect(); stickyConn=nil end; stickyTarget=nil; return end; local h=stickyTarget.Character:FindFirstChild("Head"); if h and rootPart then rootPart.CFrame=CFrame.new(h.Position+Vector3.new(0,2,0)) else if stickyConn then stickyConn:Disconnect(); stickyConn=nil end; stickyTarget=nil end end) end
+local function stopSticky() if stickyConn then stickyConn:Disconnect(); stickyConn=nil end; stickyTarget=nil end
+
+-- AUTO TTB (Tag Team Boost — when on someone's head, both boost up)
+local function setupAutoTTB(char)
+    if not char then return end
+    local r = char:WaitForChild("HumanoidRootPart", 5)
+    if not r then return end
+    r.Touched:Connect(function(hit)
+        if not autoTTBEnabled or not canTTB then return end
+        local otherChar = hit:FindFirstAncestorWhichIsA("Model")
+        if not otherChar or otherChar == char then return end
+        local otherHum = otherChar:FindFirstChild("Humanoid")
+        local otherRoot = otherChar:FindFirstChild("HumanoidRootPart")
+        if not otherHum or not otherRoot then return end
+        local otherPlayer = Players:GetPlayerFromCharacter(otherChar)
+        if not otherPlayer then return end
+        -- Check if we are ABOVE them (on their head)
+        local yDiff = r.Position.Y - otherRoot.Position.Y
+        if yDiff > 1.5 and yDiff < 8 then
+            canTTB = false
+            -- Boost ME up
+            local bv = Instance.new("BodyVelocity")
+            bv.Velocity = Vector3.new(r.AssemblyLinearVelocity.X * 0.3, ttbPower, r.AssemblyLinearVelocity.Z * 0.3)
+            bv.MaxForce = Vector3.new(0, math.huge, 0)
+            bv.P = 5000
+            bv.Parent = r
+            Debris:AddItem(bv, 0.25)
+            task.delay(ttbCooldown, function() canTTB = true end)
         end
-    end
-end)
+    end)
+end
+
+-- RESPAWN
+plr.CharacterAdded:Connect(function(char) character=char; humanoid=char:WaitForChild("Humanoid"); rootPart=char:WaitForChild("HumanoidRootPart"); head=char:WaitForChild("Head"); task.wait(0.1); if boostTechEnabled then setupBoostTech(char) end; if flingEnabled then setupFling(char) end; if gravBoostOn then setupGravBoost(char) end; if autoTTBEnabled then setupAutoTTB(char) end; if speedOn then humanoid.WalkSpeed=boostedSpeed end; flingTimers={}; ResetHats() end)
+if plr.Character then setupBoostTech(plr.Character); setupFling(plr.Character); setupGravBoost(plr.Character); setupAutoTTB(plr.Character) end
+Players.PlayerRemoving:Connect(function(p) if autoDBTarget==p then autoDBTarget=nil; if autoDBEnabled then autoDBTarget=findNearestPlayer() end end; flingTimers[p]=nil end)
+
+-- CONTROLLER
+UserInputService.InputBegan:Connect(function(i,g) if g then return end; if i.KeyCode==Enum.KeyCode.ButtonR1 then boostRequested=true end; if i.KeyCode==Enum.KeyCode.R then boostRequested=true end; if i.KeyCode==Enum.KeyCode.DPadLeft or i.KeyCode==Enum.KeyCode.Q then speedOn=not speedOn; if humanoid then humanoid.WalkSpeed=speedOn and boostedSpeed or normalSpeed end end; if i.KeyCode==Enum.KeyCode.DPadRight or i.KeyCode==Enum.KeyCode.Z then if stickyOn then if stickyTarget then stopSticky() else startSticky() end end end end)
+
+-- ============ FIRE TAB ============
+Tabs.Fire:AddParagraph({Title="legit pv",Content="pull to the football when holding m1"})
+Tabs.Fire:AddToggle("LegitPV",{Title="enable legit pv",Default=false,Callback=function(v) legitPVEnabled=v end})
+Tabs.Fire:AddSlider("PullStrength",{Title="pull strength",Description="0.01-0.03 = most legit",Default=0.01,Min=0.01,Max=1,Rounding=2,Callback=function(v) pullStrength=v end})
+Tabs.Fire:AddParagraph({Title="",Content=""})
+Tabs.Fire:AddParagraph({Title="auto db",Content="automatically follows nearest player"})
+Tabs.Fire:AddToggle("AutoDB",{Title="enable auto db",Default=false,Callback=function(v) autoDBEnabled=v; if v then autoDBTarget=findNearestPlayer() else autoDBTarget=nil end end})
+Tabs.Fire:AddSlider("AutoDBStr",{Title="follow strength",Description="0=far, 1=close",Default=0.5,Min=0,Max=1,Rounding=1,Callback=function(v) autoDBStrength=v end})
+Tabs.Fire:AddParagraph({Title="",Content=""})
+Tabs.Fire:AddParagraph({Title="boost tech",Content="boosts upward when touching players while falling"})
+Tabs.Fire:AddToggle("BoostTech",{Title="enable boost tech",Default=false,Callback=function(v) boostTechEnabled=v; if v then setupBoostTech(plr.Character) end end})
+Tabs.Fire:AddSlider("BoostHeight",{Title="boost height",Default=50,Min=25,Max=150,Rounding=1,Callback=function(v) boostHeight=v end})
+Tabs.Fire:AddParagraph({Title="",Content=""})
+Tabs.Fire:AddParagraph({Title="fling",Content="flings players backward when touching"})
+Tabs.Fire:AddToggle("Fling",{Title="enable fling",Default=false,Callback=function(v) flingEnabled=v; if v then setupFling(plr.Character) end end})
+Tabs.Fire:AddSlider("FlingDelay",{Title="fling delay (seconds)",Default=0,Min=0,Max=30,Rounding=1,Callback=function(v) flingDelay=v end})
+Tabs.Fire:AddSlider("FlingPower",{Title="fling power",Default=100,Min=30,Max=210,Rounding=10,Callback=function(v) flingPower=v end})
+Tabs.Fire:AddParagraph({Title="",Content=""})
+Tabs.Fire:AddParagraph({Title="fall speed",Content="makes jumps complete faster"})
+Tabs.Fire:AddToggle("FallSpeed",{Title="enable fall speed",Default=false,Callback=function(v) fallSpeedEnabled=v end})
+Tabs.Fire:AddSlider("FallSpeedMult",{Title="fall speed multiplier",Default=1,Min=1,Max=5,Rounding=1,Callback=function(v) fallSpeedMultiplier=v end})
+Tabs.Fire:AddParagraph({Title="",Content=""})
+Tabs.Fire:AddParagraph({Title="jump power",Content="keybind to jump with custom power"})
+Tabs.Fire:AddToggle("JumpPower",{Title="enable jump power",Default=false,Callback=function(v) jumpPowerEnabled=v end})
+Tabs.Fire:AddSlider("JumpPowerVal",{Title="jump power value",Default=50,Min=45,Max=300,Rounding=1,Callback=function(v) jumpPowerValue=v end})
+Tabs.Fire:AddInput("JumpPowerKey",{Title="jump power keybind",Default="Space",Placeholder="Enter key...",Numeric=false,Finished=true,Callback=function(v) pcall(function() jumpPowerKeybind=Enum.KeyCode[v:upper()] end) end})
+Tabs.Fire:AddParagraph({Title="",Content=""})
+Tabs.Fire:AddParagraph({Title="jump speed",Content="jump faster up and down"})
+Tabs.Fire:AddToggle("JumpSpeed",{Title="enable jump speed",Default=false,Callback=function(v) jumpSpeedEnabled=v end})
+Tabs.Fire:AddSlider("JumpSpeedMult",{Title="jump speed multiplier",Default=2,Min=1,Max=5,Rounding=1,Callback=function(v) jumpSpeedMultiplier=v end})
+Tabs.Fire:AddParagraph({Title="",Content=""})
+Tabs.Fire:AddParagraph({Title="body hitbox",Content="expands player body hitboxes"})
+Tabs.Fire:AddToggle("BodyHitbox",{Title="enable body hitbox",Default=false,Callback=function(v) bodyHitboxEnabled=v; setupBodyHitbox() end})
+Tabs.Fire:AddSlider("BodyHBSize",{Title="body hitbox size",Default=5,Min=2,Max=20,Rounding=1,Callback=function(v) bodyHitboxSize=v; if bodyHitboxEnabled then setupBodyHitbox() end end})
+Tabs.Fire:AddSlider("BodyHBTrans",{Title="body hitbox visibility",Description="0=see, 1=invisible",Default=0.5,Min=0,Max=1,Rounding=2,Callback=function(v) bodyHitboxTransparency=v end})
+Tabs.Fire:AddParagraph({Title="",Content=""})
+Tabs.Fire:AddParagraph({Title="name changer",Content="change your in-game display name"})
+Tabs.Fire:AddInput("NameInput",{Title="custom display name",Default="",Placeholder="Enter name...",Numeric=false,Finished=true,Callback=function(v) customName=v; if nameChangeEnabled then applyNameChange() end end})
+Tabs.Fire:AddToggle("NameChanger",{Title="enable name changer",Default=false,Callback=function(v) nameChangeEnabled=v; if v and customName~="" then applyNameChange() end end})
+Tabs.Fire:AddParagraph({Title="",Content=""})
+Tabs.Fire:AddParagraph({Title="headsize",Content="expands player heads"})
+Tabs.Fire:AddToggle("Headsize",{Title="enable headsize",Default=false,Callback=function(v) headsizeEnabled=v; setupHeadsize() end})
+Tabs.Fire:AddSlider("HeadsizeVal",{Title="headsize value",Default=5,Min=2,Max=20,Rounding=1,Callback=function(v) headsizeValue=v; if headsizeEnabled then setupHeadsize() end end})
+Tabs.Fire:AddSlider("HeadsizeTrans",{Title="headsize visibility",Default=0.5,Min=0,Max=1,Rounding=2,Callback=function(v) headsizeTransparency=v end})
+Tabs.Fire:AddParagraph({Title="",Content=""})
+Tabs.Fire:AddParagraph({Title="tackle reach",Content="expands tackle reach distance"})
+Tabs.Fire:AddToggle("TackleReach",{Title="enable tackle reach",Default=false,Callback=function(v) tackleReachEnabled=v; setupTackleReach() end})
+Tabs.Fire:AddSlider("TackleReachDist",{Title="tackle reach distance",Default=5,Min=1,Max=15,Rounding=1,Callback=function(v) tackleReachDistance=v end})
+
+-- ============ PLAYER TAB ============
+Tabs.Player:AddParagraph({Title="speed (Q / DPad Left)",Content="toggle speed in-game"})
+Tabs.Player:AddToggle("SpeedBoost",{Title="speed boost",Default=false,Callback=function(v) speedOn=v; if humanoid then humanoid.WalkSpeed=v and boostedSpeed or normalSpeed end end})
+Tabs.Player:AddSlider("BoostedSpeed",{Title="boosted speed",Default=21,Min=16,Max=35,Rounding=1,Callback=function(v) boostedSpeed=v; if speedOn and humanoid then humanoid.WalkSpeed=v end end})
+Tabs.Player:AddParagraph({Title="",Content=""})
+Tabs.Player:AddParagraph({Title="grav boost (Right Bumper)",Content="press RB then touch a player"})
+Tabs.Player:AddToggle("GravBoost",{Title="enable grav boost",Default=false,Callback=function(v) gravBoostOn=v end})
+Tabs.Player:AddSlider("GravPower",{Title="boost power",Default=67,Min=20,Max=150,Rounding=1,Callback=function(v) gravBoostPower=v end})
+Tabs.Player:AddParagraph({Title="",Content=""})
+Tabs.Player:AddParagraph({Title="sticky head (Z / DPad Right)",Content="stick to nearest enemy head"})
+Tabs.Player:AddToggle("StickyHead",{Title="enable sticky head",Default=false,Callback=function(v) stickyOn=v; if not v then stopSticky() end end})
+Tabs.Player:AddButton({Title="stick/unstick (manual)",Callback=function() if stickyOn then if stickyTarget then stopSticky() else startSticky() end end end})
+Tabs.Player:AddParagraph({Title="",Content=""})
+Tabs.Player:AddParagraph({Title="gravity",Content="type your gravity value (default 196)"})
+Tabs.Player:AddInput("GravityInput",{Title="gravity value",Default="179",Placeholder="100-400",Numeric=true,Finished=true,Callback=function(v) local n=tonumber(v); if n then Workspace.Gravity=math.clamp(n,50,500) end end})
+Tabs.Player:AddParagraph({Title="",Content=""})
+Tabs.Player:AddParagraph({Title="auto ttb (tag team boost)",Content="when you're on someone's head you boost up automatically"})
+Tabs.Player:AddToggle("AutoTTB",{Title="enable auto ttb",Default=false,Callback=function(v) autoTTBEnabled=v; if v and plr.Character then setupAutoTTB(plr.Character) end end})
+Tabs.Player:AddSlider("TTBPower",{Title="ttb boost power",Default=80,Min=30,Max=200,Rounding=1,Callback=function(v) ttbPower=v end})
+Tabs.Player:AddSlider("TTBCooldown",{Title="ttb cooldown (seconds)",Default=5,Min=1,Max=30,Rounding=1,Callback=function(v) ttbCooldown=v/10 end})
+
+-- ============ EMOTES TAB ============
+Tabs.Emotes:AddParagraph({Title="emotes",Content="toggle emotes on/off"})
+local emoteList={{Name="Bop",Id=8028669437},{Name="BBS",Id=83690407262789},{Name="Hackers",Id=10714364213},{Name="Ball Spin",Id=14215798544},{Name="Gronk Spike",Id=13782932458},{Name="Griddy",Id=8028694339},{Name="Smith Knicks",Id=15312473847},{Name="Head Dribble",Id=133666867152446},{Name="Sturdy",Id=14215791622},{Name="Mop",Id=14215807283},{Name="Samurai Slash",Id=15249657798},{Name="Dimension",Id=5618747341},{Name="Take The L",Id=2293391158},{Name="Goopie",Id=5439090599},{Name="Headless",Id=5704065738},{Name="Moon",Id=14216002323},{Name="Neighborly Hang",Id=11006145037},{Name="Worm",Id=3471311681},{Name="Hacky Sack",Id=14220954146},{Name="Goodnight",Id=15375772247},{Name="Head Spin",Id=14920821886},{Name="Keep It Hot",Id=85267023718407},{Name="Peanut Butter Jelly Time",Id=5433555683},{Name="Memphis Pregame",Id=14138482621}}
+local currentEmoteToggle=nil
+for _,emote in ipairs(emoteList) do local toggle=Tabs.Emotes:AddToggle("Emote"..emote.Name,{Title=emote.Name,Default=false}); toggle:OnChanged(function(v) if v then if currentEmoteToggle and currentEmoteToggle~=emote.Name then Fluent.Options["Emote"..currentEmoteToggle]:SetValue(false) end; currentEmoteToggle=emote.Name; LoadEmote(emote.Id) else if currentEmoteToggle==emote.Name then StopEmote(); currentEmoteToggle=nil end end end) end
+Tabs.Emotes:AddButton({Title="stop all emotes",Callback=function() StopEmote(); currentEmoteToggle=nil; for _,emote in ipairs(emoteList) do Fluent.Options["Emote"..emote.Name]:SetValue(false) end end})
+
+-- ============ ITEMS TAB ============
+Tabs.Items:AddParagraph({Title="hats",Content="click to equip"})
+for _,hat in ipairs(Hats) do Tabs.Items:AddButton({Title=hat.Name,Callback=function() EquipHat(hat.Id,hat.Type,hat.Attach) end}) end
+Tabs.Items:AddButton({Title="reset hats",Callback=function() ResetHats() end})
+Tabs.Items:AddParagraph({Title="",Content=""})
+Tabs.Items:AddParagraph({Title="selftyz accessories",Content="toggle mesh/clothing"})
+local allNames={}; for k in pairs(MESH_ITEMS) do table.insert(allNames,k) end; for k in pairs(CLOTHING_ITEMS) do table.insert(allNames,k) end; table.sort(allNames)
+for _,n in ipairs(allNames) do local name=n; Tabs.Items:AddToggle("Acc_"..name,{Title=name,Default=false,Callback=function(v) if v then equipItem(name) else unequipItem(name) end end}) end
+Tabs.Items:AddButton({Title="unequip all selftyz",Callback=function() local r={}; for n in pairs(equipped) do table.insert(r,n) end; for _,n in ipairs(r) do unequipItem(n) end end})
+
+Workspace.Gravity=196.2
+Fluent:Notify({Title="selftyz hub",Content="Loaded! RightControl to minimize",Duration=3})
