@@ -30,15 +30,6 @@ local hitboxTransparency = 0.5
 local boostEnabled = false
 local boostPower = 90
 
-local stickySettings = {
-    enabled = false,
-    strength = 0.5,
-    jumpDetectionDistance = 25,
-    stickDistance = 8,
-    isStuck = false,
-    targetHead = nil
-}
-
 -- [[ TABS ]]
 local CompTab = Window:CreateTab("Comp")
 local EmotesTab = Window:CreateTab("Emotes")
@@ -46,11 +37,7 @@ local ItemTab = Window:CreateTab("Items")
 local SpooferTab = Window:CreateTab("Spoofers")
 
 -- [[ COMP TAB ]]
-CompTab:CreateSection("--- Auto TTB (Sticky) ---")
-CompTab:CreateToggle({Name = "Enable Auto TTB", CurrentValue = false, Callback = function(V) stickySettings.enabled = V end})
-CompTab:CreateSlider({Name = "Sticky Strength", Range = {0.1, 1}, Increment = 0.05, CurrentValue = 0.5, Callback = function(V) stickySettings.strength = V end})
-
-CompTab:CreateSection("--- Hitbox Expander ---")
+CompTab:CreateSection("--- Hitbox ---")
 CompTab:CreateToggle({Name = "Hitbox Enabled", CurrentValue = false, Callback = function(V) hitboxEnabled = V end})
 CompTab:CreateSlider({Name = "Hitbox Size", Range = {2, 30}, Increment = 1, CurrentValue = 2, Callback = function(V) hitboxSize = V end})
 
