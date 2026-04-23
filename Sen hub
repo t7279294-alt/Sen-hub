@@ -212,8 +212,8 @@ local CLOTHING_ITEMS = {
     ["Black CW Headphones"]     = {type="Accessory", assetId=93874449800600},
     ["Black CW Shades"]         = {type="Accessory", assetId=111757672542159},
     ["Star Chain"]              = {type="Accessory", assetId=12269196297},
-    ["LavaSceneHair"]           = {type="Accessory", assetId=113527009413079},
-    ["AltScene"]                = {type="Accessory", assetId=135147917900203},
+    ["Lava Scene"]           = {type="Accessory", assetId=113527009413079},
+    ["Pink Scene"]                = {type="Accessory", assetId=76056263},
 }
 
 -- =========================
