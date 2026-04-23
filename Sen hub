@@ -155,54 +155,6 @@ EmotesTab:CreateButton({
         PlayEmote(10714364213, true)
     end
 })
-EmotesTab:CreateButton({
-    Name = "Ball Spin",
-    Callback = function()
-        PlayEmote(14215798544, true)
-    end
-})
-EmotesTab:CreateButton({
-    Name = "Gronk Spike",
-    Callback = function()
-        PlayEmote(13782932458, true)
-    end
-})
-EmotesTab:CreateButton({
-    Name = "Griddy",
-    Callback = function()
-        PlayEmote(8028694339, true)
-    end
-})
-EmotesTab:CreateButton({
-    Name = "Head Dribble",
-    Callback = function()
-        PlayEmote(133666867152446, true)
-    end
-})
-EmotesTab:CreateButton({
-    Name = "Smith Knicks",
-    Callback = function()
-        PlayEmote(15312473847, true)
-    end
-})
-EmotesTab:CreateButton({
-    Name = "Sturdy",
-    Callback = function()
-        PlayEmote(14215791622, true)
-    end
-})
-EmotesTab:CreateButton({
-    Name = "Mop",
-    Callback = function()
-        PlayEmote(14215807283, true)
-    end
-})
-EmotesTab:CreateButton({
-    Name = "Samurai Slash",
-    Callback = function()
-        PlayEmote(15249657798, true)
-    end
-})
 
 EmotesTab:CreateButton({
     Name = "Stop All",
@@ -216,66 +168,275 @@ EmotesTab:CreateButton({
 -- [[ ITEMS TAB ]]
 ItemTab:CreateSection("Accessories")
 
-local ACCESSORY_DATA = {
-    AllStarGear = {
-        mesh = "rbxassetid://13410505140",
-        texture = "rbxassetid://13410505151",
-        parent = "UpperTorso",
-        scale = Vector3.new(1,1,1),
-        offset = CFrame.new(0, 0, 0)
-    },
-    InfBandanna = {
-        mesh = "rbxassetid://13540050100",
-        texture = "rbxassetid://13540050115",
-        parent = "Head",
-        scale = Vector3.new(1.05,1.05,1.05),
-        offset = CFrame.new(0, 0.1, 0)
-    }
+local Players = game:GetService("Players")
+local InsertService = game:GetService("InsertService")
+
+local character = lp.Character or lp.CharacterAdded:Wait()
+
+local equipped = {}
+local origShirtTemplate = nil
+local origPantsTemplate = nil
+
+do
+    local s = character:FindFirstChildOfClass("Shirt")
+    local p = character:FindFirstChildOfClass("Pants")
+    if s then origShirtTemplate = s.ShirtTemplate end
+    if p then origPantsTemplate = p.PantsTemplate end
+end
+
+-- =========================
+-- MESH ITEMS (FULL)
+-- =========================
+local MESH_ITEMS = {
+    Coldstare   ={mesh="rbxassetid://5028704943", tex="rbxassetid://5047708728", par="UpperTorso", scl=Vector3.new(1,1,1), off=CFrame.new(0,0.15,0.65)*CFrame.Angles(0,math.rad(180),0)},
+    DesertVest  ={mesh="rbxassetid://11755494017", tex="rbxassetid://11755494031", par="UpperTorso", scl=Vector3.new(0.73,1.13,0.75), off=CFrame.new(0,0,-0.05)},
+    DRC         ={mesh="rbxassetid://6541224713", tex="rbxassetid://7833727918", par="Head", scl=Vector3.new(1.01,1.01,1.01), off=CFrame.new(0,0.91,0.11)*CFrame.Angles(0,math.rad(90),0)},
+    Keff        ={mesh="rbxassetid://14156626934", tex="rbxassetid://14156781317", par="Head", scl=Vector3.new(0.9,0.9,0.9), off=CFrame.new(-0.06,0.38,0.1)*CFrame.Angles(0,math.rad(180),0)},
+    SeeingStars ={mesh="rbxassetid://62139052", tex="rbxassetid://62139103", par="Head", scl=Vector3.new(1.05,1.05,1.05), off=CFrame.new(0,0.05,-0.45)},
+    Subarctic   ={mesh="rbxassetid://39200112", tex="rbxassetid://39200088", par="Head", scl=Vector3.new(1.02,1.02,1.02), off=CFrame.new(0,0.27,0)},
+    TacticalVest={mesh="rbxassetid://11754584493", tex="rbxassetid://11754584535", par="UpperTorso", scl=Vector3.new(0.73,1.13,0.75), off=CFrame.new(0,0,-0.05)},
+    WhiteTowel  ={mesh="rbxassetid://6919149797", tex="rbxassetid://6923948446", par="LowerTorso", scl=Vector3.new(1,1,1), off=CFrame.new(0.55,-0.65,-0.15)*CFrame.Angles(0,math.rad(90),0)},
 }
 
-local function equipItem(name)
-    if equippedAccessories[name] then return end
+-- =========================
+-- CLOTHING ITEMS (FULL)
+-- =========================
+local CLOTHING_ITEMS = {
+    ["Black World Tour Shirt"]  = {type="Shirt", assetId=15335037852},
+    ["Pink World Tour Shirt"]   = {type="Shirt", assetId=15334978300},
+    ["King Shirt"]              = {type="Shirt", assetId=6296265575},
+    ["King Pants"]              = {type="Pants", assetId=10725550576},
+    ["Black Bandana Shorts"]    = {type="Pants", assetId=15020463274},
+    ["Ushanka"]                 = {type="Accessory", assetId=12710415119},
+    ["White CW Set"]            = {type="Accessory", assetId=97230132426750},
+    ["Black CW Headphones"]     = {type="Accessory", assetId=93874449800600},
+    ["Black CW Shades"]         = {type="Accessory", assetId=111757672542159},
+    ["Star Chain"]              = {type="Accessory", assetId=12269196297},
+    ["LavaSceneHair"]           = {type="Accessory", assetId=113527009413079},
+    ["AltScene"]                = {type="Accessory", assetId=135147917900203},
+}
 
-    local data = ACCESSORY_DATA[name]
-    local p_part = lp.Character:FindFirstChild(data.parent)
-    if not p_part then return end
+-- =========================
+-- SLOT GUESS (FULL)
+-- =========================
+local function guessSlot(name)
+    local nm = name:lower()
+    if nm:find("face") or nm:find("shade") then return "FaceAccessory" end
+    if nm:find("hair") or nm:find("scene") then return "HairAccessory" end
+    if nm:find("neck") or nm:find("chain") then return "NeckAccessory" end
+    if nm:find("back") then return "BackAccessory" end
+    if nm:find("waist") then return "WaistAccessory" end
+    if nm:find("shoulder") then return "ShouldersAccessory" end
+    return "HatAccessory"
+end
 
-    local part = Instance.new("Part", lp.Character)
+-- =========================
+-- EQUIP MESH
+-- =========================
+local function equipMeshItem(name)
+    if equipped[name] then return end
+    local d = MESH_ITEMS[name]
+    if not d then return end
+
+    local par = character:FindFirstChild(d.par) or character:FindFirstChild("Torso")
+    if not par then return end
+
+    local part = Instance.new("Part")
     part.Name = name
     part.Size = Vector3.new(1,1,1)
     part.CanCollide = false
     part.Massless = true
+    part.Parent = character
 
     local mesh = Instance.new("SpecialMesh", part)
-    mesh.MeshType = Enum.MeshType.FileMesh
-    mesh.MeshId = data.mesh
-    mesh.TextureId = data.texture
-    mesh.Scale = data.scale
+    mesh.MeshId = d.mesh
+    mesh.TextureId = d.tex
+    mesh.Scale = d.scl
 
-    local weld = Instance.new("Motor6D", p_part)
-    weld.Part0 = p_part
+    local weld = Instance.new("Motor6D", par)
+    weld.Part0 = par
     weld.Part1 = part
-    weld.C0 = data.offset
+    weld.C0 = d.off
 
-    equippedAccessories[name] = part
+    equipped[name] = {part}
 end
 
-for name, _ in pairs(ACCESSORY_DATA) do
+-- =========================
+-- EQUIP CLOTHING (ALL METHODS)
+-- =========================
+local function equipClothing(name)
+    if equipped[name] then return end
+    local d = CLOTHING_ITEMS[name]
+    if not d then return end
+
+    local char = character
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    local idStr = tostring(d.assetId)
+
+    local applied = false
+    local appliedParts = {}
+
+    -- METHOD 1 (GetObjects)
+    pcall(function()
+        local objs = game:GetObjects("rbxassetid://"..idStr)
+        for _, obj in pairs(objs) do
+            for _, v in pairs(obj:GetDescendants()) do
+                if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") then
+                    v.Parent = char
+                    if hum and v:IsA("Accessory") then hum:AddAccessory(v) end
+                    table.insert(appliedParts, v)
+                    applied = true
+                end
+            end
+        end
+    end)
+
+    -- METHOD 2 (InsertService)
+    if not applied then
+        pcall(function()
+            local model = InsertService:LoadAsset(d.assetId)
+            for _, v in pairs(model:GetDescendants()) do
+                if v:IsA("Accessory") then
+                    v.Parent = char
+                    hum:AddAccessory(v)
+                    table.insert(appliedParts, v)
+                    applied = true
+                end
+            end
+            model:Destroy()
+        end)
+    end
+
+    -- METHOD 3 (Dummy Model)
+    if not applied and hum then
+        pcall(function()
+            local desc = Instance.new("HumanoidDescription")
+            desc[guessSlot(name)] = idStr
+
+            local dummy = Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15)
+            for _, v in pairs(dummy:GetChildren()) do
+                if v:IsA("Accessory") then
+                    v.Parent = char
+                    hum:AddAccessory(v)
+                    table.insert(appliedParts, v)
+                    applied = true
+                end
+            end
+            dummy:Destroy()
+        end)
+    end
+
+    -- METHOD 4 (Classic clothing fallback)
+    if not applied then
+        if d.type == "Shirt" then
+            local s = Instance.new("Shirt", char)
+            s.ShirtTemplate = "rbxassetid://"..idStr
+            table.insert(appliedParts, s)
+            applied = true
+        elseif d.type == "Pants" then
+            local p = Instance.new("Pants", char)
+            p.PantsTemplate = "rbxassetid://"..idStr
+            table.insert(appliedParts, p)
+            applied = true
+        end
+    end
+
+    if applied then
+        equipped[name] = appliedParts
+    end
+end
+
+-- =========================
+-- TOGGLES (ALL ITEMS)
+-- =========================
+local allNames = {}
+
+for k in pairs(MESH_ITEMS) do table.insert(allNames, k) end
+for k in pairs(CLOTHING_ITEMS) do table.insert(allNames, k) end
+
+table.sort(allNames)
+
+for _, name in ipairs(allNames) do
     ItemTab:CreateToggle({
         Name = name,
         CurrentValue = false,
         Callback = function(v)
             if v then
-                equipItem(name)
+                if MESH_ITEMS[name] then
+                    equipMeshItem(name)
+                else
+                    equipClothing(name)
+                end
             else
-                if equippedAccessories[name] then
-                    equippedAccessories[name]:Destroy()
-                    equippedAccessories[name] = nil
+                if equipped[name] then
+                    for _, p in pairs(equipped[name]) do
+                        if typeof(p) == "Instance" and p.Parent then
+                            p:Destroy()
+                        end
+                    end
+                    equipped[name] = nil
                 end
             end
         end
     })
 end
+
+-- =========================
+-- CUSTOM ID LOADER
+-- =========================
+local customID = 0
+
+ItemTab:CreateInput({
+    Name = "Catalog ID",
+    PlaceholderText = "Enter ID...",
+    Callback = function(v)
+        customID = tonumber(v) or 0
+    end
+})
+
+ItemTab:CreateButton({
+    Name = "Load Hat",
+    Callback = function()
+        if customID <= 0 then return end
+        local name = "Custom_"..customID
+        CLOTHING_ITEMS[name] = {type="Accessory", assetId=customID}
+        equipClothing(name)
+    end
+})
+
+ItemTab:CreateButton({
+    Name = "Load Shirt",
+    Callback = function()
+        if customID <= 0 then return end
+        local name = "CustomShirt_"..customID
+        CLOTHING_ITEMS[name] = {type="Shirt", assetId=customID}
+        equipClothing(name)
+    end
+})
+
+ItemTab:CreateButton({
+    Name = "Load Pants",
+    Callback = function()
+        if customID <= 0 then return end
+        local name = "CustomPants_"..customID
+        CLOTHING_ITEMS[name] = {type="Pants", assetId=customID}
+        equipClothing(name)
+    end
+})
+
+ItemTab:CreateButton({
+    Name = "Unequip All",
+    Callback = function()
+        for name in pairs(equipped) do
+            for _, v in pairs(equipped[name]) do
+                if typeof(v) == "Instance" and v.Parent then
+                    v:Destroy()
+                end
+            end
+        end
+        equipped = {}
+    end
+})
 
 -- [[ SPOOFER TAB ]]
 SpooferTab:CreateSection("Name Changer")
