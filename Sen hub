@@ -199,7 +199,9 @@ local bans = {
     ["TikTok"] = "14308515186",
     ["YT"] = "13181356130",
     ["Twitch"] = "13284240977",
+    ["Global"] = "13223858189",
     ["Staff"] = "13284239964"
+   
 }
 
 for n, id in pairs(bans) do
