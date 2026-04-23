@@ -31,6 +31,37 @@ local hitboxTransparency = 0.5 -- 🔧 CHANGE DEFAULT HERE (0 = visible, 1 = inv
 local boostEnabled = false
 local boostPower = 90
 
+local originalName = lp.Name
+local spoofedName = lp.Name
+local nameChangerEnabled = false
+local cachedNameLabels = {}
+local lastNameUpdate = 0
+
+-- [[ FUNCTIONS ]]
+local function findNameLabels()
+    cachedNameLabels = {}
+    
+    -- Search character
+    for _, v in pairs(lp.Character:GetDescendants()) do
+        if v:IsA("TextLabel") then
+            if v.Name == "NameTag" or v.Name == "PlayerName" or v.Name == "Username" or 
+               (v.Text and v.Text == originalName) or (v.Text and v.Text == spoofedName) then
+                table.insert(cachedNameLabels, v)
+            end
+        end
+    end
+    
+    -- Search PlayerGui
+    local playerGui = lp:FindFirstChild("PlayerGui")
+    if playerGui then
+        for _, v in pairs(playerGui:GetDescendants()) do
+            if v:IsA("TextLabel") and (v.Text == originalName or v.Text == spoofedName) then
+                table.insert(cachedNameLabels, v)
+            end
+        end
+    end
+end
+
 -- [[ TABS ]]
 local CompTab = Window:CreateTab("Comp")
 local EmotesTab = Window:CreateTab("Emotes")
@@ -199,6 +230,44 @@ for name, _ in pairs(ACCESSORY_DATA) do
 end
 
 -- [[ SPOOFER TAB ]]
+SpooferTab:CreateSection("Name Changer")
+
+SpooferTab:CreateInput({
+    Name = "Custom Name",
+    PlaceholderText = "Enter name...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(text)
+        spoofedName = text
+    end
+})
+
+SpooferTab:CreateButton({
+    Name = "Apply Name",
+    Callback = function()
+        nameChangerEnabled = true
+        findNameLabels() -- Find all name labels when applying
+        Rayfield:Notify({
+            Title = "Name Changer",
+            Content = "Name changed to: " .. spoofedName,
+            Duration = 3
+        })
+    end
+})
+
+SpooferTab:CreateButton({
+    Name = "Reset Name",
+    Callback = function()
+        spoofedName = originalName
+        nameChangerEnabled = false
+        cachedNameLabels = {} -- Clear cache
+        Rayfield:Notify({
+            Title = "Name Changer",
+            Content = "Name reset to original",
+            Duration = 3
+        })
+    end
+})
+
 SpooferTab:CreateSection("Banners")
 
 local bans = {
@@ -247,12 +316,33 @@ game:GetService("RunService").Heartbeat:Connect(function()
         end
     end
 
+    -- Banner spoof
     for _, v in pairs(lp.Character:GetDescendants()) do
         if v:IsA("ImageLabel") and v.Visible and v.AbsoluteSize.X > v.AbsoluteSize.Y then
             if not originalBannerID then
                 originalBannerID = v.Image
             end
             v.Image = currentBannerID
+        end
+    end
+end)
+
+-- [[ NAME SPOOF LOOP (Separate slower loop to prevent lag) ]]
+spawn(function()
+    while wait(0.1) do -- Only runs 10 times per second instead of 60+
+        if nameChangerEnabled then
+            -- Update cached labels
+            for _, label in pairs(cachedNameLabels) do
+                if label and label.Parent then
+                    label.Text = spoofedName
+                end
+            end
+            
+            -- Refresh cache every second
+            if tick() - lastNameUpdate > 1 then
+                findNameLabels()
+                lastNameUpdate = tick()
+            end
         end
     end
 end)
