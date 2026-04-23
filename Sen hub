@@ -106,22 +106,22 @@ local function PlayEmote(id, isLooped)
 end
 
 EmotesTab:CreateButton({
-    Name = "Ball Spin",
+    Name = "BBS",
     Callback = function()
-        PlayEmote(14215798544, true)
+        PlayEmote(2178463446, true)
     end
 })
 
 EmotesTab:CreateButton({
-    Name = "Mop",
+    Name = "Bop",
     Callback = function()
-        PlayEmote(14215807283, true)
+        PlayEmote(8028669437, true)
     end
 })
 EmotesTab:CreateButton({
-    Name = "I see kareem groove",
+    Name = "Hackers",
     Callback = function()
-        PlayEmote(70410722544605, true)
+        PlayEmote(10714364213, true)
     end
 })
 
