@@ -155,6 +155,54 @@ EmotesTab:CreateButton({
         PlayEmote(10714364213, true)
     end
 })
+EmotesTab:CreateButton({
+    Name = "Ball Spin",
+    Callback = function()
+        PlayEmote(14215798544, true)
+    end
+})
+EmotesTab:CreateButton({
+    Name = "Gronk Spike",
+    Callback = function()
+        PlayEmote(13782932458, true)
+    end
+})
+EmotesTab:CreateButton({
+    Name = "Griddy",
+    Callback = function()
+        PlayEmote(8028694339, true)
+    end
+})
+EmotesTab:CreateButton({
+    Name = "Head Dribble",
+    Callback = function()
+        PlayEmote(133666867152446, true)
+    end
+})
+EmotesTab:CreateButton({
+    Name = "Smith Knicks",
+    Callback = function()
+        PlayEmote(15312473847, true)
+    end
+})
+EmotesTab:CreateButton({
+    Name = "Sturdy",
+    Callback = function()
+        PlayEmote(14215791622, true)
+    end
+})
+EmotesTab:CreateButton({
+    Name = "Mop",
+    Callback = function()
+        PlayEmote(14215807283, true)
+    end
+})
+EmotesTab:CreateButton({
+    Name = "Samurai Slash",
+    Callback = function()
+        PlayEmote(15249657798, true)
+    end
+})
 
 EmotesTab:CreateButton({
     Name = "Stop All",
