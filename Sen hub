@@ -20,13 +20,14 @@ local humanoid = char:WaitForChild("Humanoid")
 local root = char:WaitForChild("HumanoidRootPart")
 
 local currentBannerID = "rbxassetid://13181356130"
-local originalBannerID = nil -- ✅ NEW
+local originalBannerID = nil
 local equippedAccessories = {}
 
 -- [[ SETTINGS ]]
 local hitboxEnabled = false
 local hitboxSize = 2
-local hitboxTransparency = 0.5
+local hitboxTransparency = 0.5 -- 🔧 CHANGE DEFAULT HERE (0 = visible, 1 = invisible)
+
 local boostEnabled = false
 local boostPower = 90
 
@@ -38,40 +39,118 @@ local SpooferTab = Window:CreateTab("Spoofers")
 
 -- [[ COMP TAB ]]
 CompTab:CreateSection("--- Hitbox ---")
-CompTab:CreateToggle({Name = "Hitbox Enabled", CurrentValue = false, Callback = function(V) hitboxEnabled = V end})
-CompTab:CreateSlider({Name = "Hitbox Size", Range = {2, 30}, Increment = 1, CurrentValue = 2, Callback = function(V) hitboxSize = V end})
+
+CompTab:CreateToggle({
+    Name = "Hitbox Enabled",
+    CurrentValue = false,
+    Callback = function(V)
+        hitboxEnabled = V
+    end
+})
+
+CompTab:CreateSlider({
+    Name = "Hitbox Size",
+    Range = {2, 30},
+    Increment = 1,
+    CurrentValue = 2,
+    Callback = function(V)
+        hitboxSize = V
+    end
+})
+
+-- ✅ NEW TRANSPARENCY SLIDER
+CompTab:CreateSlider({
+    Name = "Hitbox Transparency",
+    Range = {0, 1},
+    Increment = 0.05,
+    CurrentValue = 0.5,
+    Callback = function(V)
+        hitboxTransparency = V
+    end
+})
 
 CompTab:CreateSection("--- Boost Tech ---")
-CompTab:CreateToggle({Name = "Enable Boost", CurrentValue = false, Callback = function(V) boostEnabled = V end})
-CompTab:CreateSlider({Name = "Boost Power", Range = {50, 250}, Increment = 5, CurrentValue = 90, Callback = function(V) boostPower = V end})
+
+CompTab:CreateToggle({
+    Name = "Enable Boost",
+    CurrentValue = false,
+    Callback = function(V)
+        boostEnabled = V
+    end
+})
+
+CompTab:CreateSlider({
+    Name = "Boost Power",
+    Range = {50, 250},
+    Increment = 5,
+    CurrentValue = 90,
+    Callback = function(V)
+        boostPower = V
+    end
+})
 
 -- [[ EMOTES TAB ]]
 EmotesTab:CreateSection("Animations")
+
 local function PlayEmote(id, isLooped)
-    for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do track:Stop() end
+    for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do
+        track:Stop()
+    end
+
     local anim = Instance.new("Animation")
     anim.AnimationId = "rbxassetid://" .. tostring(id)
+
     local load = humanoid:LoadAnimation(anim)
     load.Looped = isLooped
     load:Play()
 end
 
-EmotesTab:CreateButton({Name = "Ball Spin", Callback = function() PlayEmote(14215798544, true) end})
-EmotesTab:CreateButton({Name = "Mop", Callback = function() PlayEmote(14215807283, true) end})
-EmotesTab:CreateButton({Name = "Stop All", Callback = function()
-    for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do track:Stop() end
-end})
+EmotesTab:CreateButton({
+    Name = "Ball Spin",
+    Callback = function()
+        PlayEmote(14215798544, true)
+    end
+})
+
+EmotesTab:CreateButton({
+    Name = "Mop",
+    Callback = function()
+        PlayEmote(14215807283, true)
+    end
+})
+
+EmotesTab:CreateButton({
+    Name = "Stop All",
+    Callback = function()
+        for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do
+            track:Stop()
+        end
+    end
+})
 
 -- [[ ITEMS TAB ]]
 ItemTab:CreateSection("Accessories")
 
 local ACCESSORY_DATA = {
-    AllStarGear = { mesh = "rbxassetid://13410505140", texture = "rbxassetid://13410505151", parent = "UpperTorso", scale = Vector3.new(1,1,1), offset = CFrame.new(0, 0, 0) },
-    InfBandanna = { mesh = "rbxassetid://13540050100", texture = "rbxassetid://13540050115", parent = "Head", scale = Vector3.new(1.05,1.05,1.05), offset = CFrame.new(0, 0.1, 0) }
+    AllStarGear = {
+        mesh = "rbxassetid://13410505140",
+        texture = "rbxassetid://13410505151",
+        parent = "UpperTorso",
+        scale = Vector3.new(1,1,1),
+        offset = CFrame.new(0, 0, 0)
+    },
+    InfBandanna = {
+        mesh = "rbxassetid://13540050100",
+        texture = "rbxassetid://13540050115",
+        parent = "Head",
+        scale = Vector3.new(1.05,1.05,1.05),
+        offset = CFrame.new(0, 0.1, 0)
+    }
 }
 
 local function equipItem(name)
     if equippedAccessories[name] then return end
+
     local data = ACCESSORY_DATA[name]
     local p_part = lp.Character:FindFirstChild(data.parent)
     if not p_part then return end
@@ -132,7 +211,6 @@ for n, id in pairs(bans) do
     })
 end
 
--- ✅ RESET BUTTON
 SpooferTab:CreateButton({
     Name = "Reset Banner",
     Callback = function()
@@ -149,8 +227,13 @@ game:GetService("RunService").Heartbeat:Connect(function()
     if hitboxEnabled then
         for _, p in pairs(game.Players:GetPlayers()) do
             if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                p.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                p.Character.HumanoidRootPart.Transparency = hitboxTransparency
+                local hrp = p.Character.HumanoidRootPart
+
+                hrp.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                hrp.Transparency = hitboxTransparency
+
+                -- optional visual
+                hrp.Material = Enum.Material.ForceField
             end
         end
     end
@@ -158,7 +241,7 @@ game:GetService("RunService").Heartbeat:Connect(function()
     for _, v in pairs(lp.Character:GetDescendants()) do
         if v:IsA("ImageLabel") and v.Visible and v.AbsoluteSize.X > v.AbsoluteSize.Y then
             if not originalBannerID then
-                originalBannerID = v.Image -- ✅ SAVE ORIGINAL ONCE
+                originalBannerID = v.Image
             end
             v.Image = currentBannerID
         end
