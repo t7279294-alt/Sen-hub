@@ -6,10 +6,10 @@ warn = function() end
 error = function() end
 
 local Window = Rayfield:CreateWindow({
-   Name = "Zen Hub | Universal Football",
-   LoadingTitle = "Zen Hub",
-   LoadingSubtitle = "by shegoingzen",
-   ConfigurationSaving = {Enabled = true, FolderName = "ZenHub", FileName = "Config"},
+   Name = "Metoird Hub | Universal Football",
+   LoadingTitle = "Metoird Hub",
+   LoadingSubtitle = "by metorid",
+   ConfigurationSaving = {Enabled = true, FolderName = "MetoirdHub", FileName = "Config"},
    KeySystem = false
 })
 
@@ -40,16 +40,10 @@ local stickySettings = {
 }
 
 -- [[ TABS ]]
-local StatsTab = Window:CreateTab("Stats")
 local CompTab = Window:CreateTab("Comp")
 local EmotesTab = Window:CreateTab("Emotes")
 local ItemTab = Window:CreateTab("Items")
 local SpooferTab = Window:CreateTab("Spoofers")
-
--- [[ STATS ]]
-StatsTab:CreateSection("Account Status")
-StatsTab:CreateLabel("User: " .. lp.Name)
-StatsTab:CreateLabel("Status: Lifetime (No Key)")
 
 -- [[ COMP TAB ]]
 CompTab:CreateSection("--- Auto TTB (Sticky) ---")
@@ -153,7 +147,7 @@ end
 
 -- ✅ RESET BUTTON
 SpooferTab:CreateButton({
-    Name = "Reset to Original",
+    Name = "Reset Banner",
     Callback = function()
         if originalBannerID then
             currentBannerID = originalBannerID
@@ -185,7 +179,7 @@ game:GetService("RunService").Heartbeat:Connect(function()
 end)
 
 Rayfield:Notify({
-    Title = "Zen Hub",
+    Title = "Metoird Hub",
     Content = "Loaded successfully (No Key System)!",
     Duration = 5
 })
