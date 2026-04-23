@@ -50,7 +50,7 @@ CompTab:CreateToggle({
 
 CompTab:CreateSlider({
     Name = "Hitbox Size",
-    Range = {2, 30},
+    Range = {1, 30},
     Increment = 1,
     CurrentValue = 2,
     Callback = function(V)
