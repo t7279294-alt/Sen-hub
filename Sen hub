@@ -118,6 +118,12 @@ EmotesTab:CreateButton({
         PlayEmote(14215807283, true)
     end
 })
+EmotesTab:CreateButton({
+    Name = "I see kareem groove",
+    Callback = function()
+        PlayEmote(70410722544605, true)
+    end
+})
 
 EmotesTab:CreateButton({
     Name = "Stop All",
