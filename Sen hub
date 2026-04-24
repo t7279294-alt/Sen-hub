@@ -206,7 +206,7 @@ local MESH_ITEMS = {
     SeeingStars = {mesh="rbxassetid://62139052",    tex="rbxassetid://62139103",    par="Head",       scl=Vector3.new(1.05,1.05,1.05), off=CFrame.new(0,0.05,-0.45)},
     Subarctic   = {mesh="rbxassetid://39200112",    tex="rbxassetid://39200088",    par="Head",       scl=Vector3.new(1.02,1.02,1.02), off=CFrame.new(0,0.27,0)},
     TacticalVest= {mesh="rbxassetid://11754584493", tex="rbxassetid://11754584535", par="UpperTorso", scl=Vector3.new(0.73,1.13,0.75), off=CFrame.new(0,0,-0.05)},
-    WhiteTowel  = {mesh="rbxassetid://6919149797",  tex="rbxassetid://6923948446",  par="LowerTorso", scl=Vector3.new(1,1,1),          off=CFrame.new(0.60,-0.60,-0.02)*CFrame.Angles(0,math.rad(2000),0)},
+    WhiteTowel  ={mesh="rbxassetid://6919149797",   tex="rbxassetid://6923948446",   par="LowerTorso", scl=Vector3.new(1,1,0.85),          off=CFrame.new(0.70,-0.50,0.02)*CFrame.Angles(0,math.rad(2000),0)},
 }
 
 -- ============================================================
