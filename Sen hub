@@ -26,7 +26,7 @@ local equippedAccessories = {}
 -- [[ SETTINGS ]]
 local hitboxEnabled = false
 local hitboxSize = 2
-local hitboxTransparency = 0.5 -- 🔧 CHANGE DEFAULT HERE (0 = visible, 1 = invisible)
+local hitboxTransparency = 0.5
 
 local boostEnabled = false
 local boostPower = 90
@@ -89,7 +89,6 @@ CompTab:CreateSlider({
     end
 })
 
--- ✅ NEW TRANSPARENCY SLIDER
 CompTab:CreateSlider({
     Name = "Hitbox Transparency",
     Range = {0, 1},
@@ -149,10 +148,18 @@ EmotesTab:CreateButton({
         PlayEmote(8028669437, true)
     end
 })
+
 EmotesTab:CreateButton({
     Name = "Hackers",
     Callback = function()
         PlayEmote(10714364213, true)
+    end
+})
+
+EmotesTab:CreateButton({
+    Name = "HD",
+    Callback = function()
+        PlayEmote(133666867152446, true)
     end
 })
 
@@ -165,8 +172,11 @@ EmotesTab:CreateButton({
     end
 })
 
--- [[ ITEMS TAB ]]
-ItemTab:CreateSection("Accessories")
+-- ============================================================
+-- [[ ITEMS TAB - COMPLETE SYSTEM FROM KAPY HUB ]]
+-- ============================================================
+
+ItemTab:CreateSection("Accessories & Clothing")
 
 local Players = game:GetService("Players")
 local InsertService = game:GetService("InsertService")
@@ -177,6 +187,7 @@ local equipped = {}
 local origShirtTemplate = nil
 local origPantsTemplate = nil
 
+-- Store original clothing
 do
     local s = character:FindFirstChildOfClass("Shirt")
     local p = character:FindFirstChildOfClass("Pants")
@@ -184,171 +195,426 @@ do
     if p then origPantsTemplate = p.PantsTemplate end
 end
 
--- =========================
--- MESH ITEMS (FULL)
--- =========================
+-- ============================================================
+-- COMPLETE MESH ITEMS DATABASE
+-- ============================================================
 local MESH_ITEMS = {
-    Coldstare   ={mesh="rbxassetid://5028704943", tex="rbxassetid://5047708728", par="UpperTorso", scl=Vector3.new(1,1,1), off=CFrame.new(0,0.15,0.65)*CFrame.Angles(0,math.rad(180),0)},
-    DesertVest  ={mesh="rbxassetid://11755494017", tex="rbxassetid://11755494031", par="UpperTorso", scl=Vector3.new(0.73,1.13,0.75), off=CFrame.new(0,0,-0.05)},
-    DRC         ={mesh="rbxassetid://6541224713", tex="rbxassetid://7833727918", par="Head", scl=Vector3.new(1.01,1.01,1.01), off=CFrame.new(0,0.91,0.11)*CFrame.Angles(0,math.rad(90),0)},
-    Keff        ={mesh="rbxassetid://14156626934", tex="rbxassetid://14156781317", par="Head", scl=Vector3.new(0.9,0.9,0.9), off=CFrame.new(-0.06,0.38,0.1)*CFrame.Angles(0,math.rad(180),0)},
-    SeeingStars ={mesh="rbxassetid://62139052", tex="rbxassetid://62139103", par="Head", scl=Vector3.new(1.05,1.05,1.05), off=CFrame.new(0,0.05,-0.45)},
-    Subarctic   ={mesh="rbxassetid://39200112", tex="rbxassetid://39200088", par="Head", scl=Vector3.new(1.02,1.02,1.02), off=CFrame.new(0,0.27,0)},
-    TacticalVest={mesh="rbxassetid://11754584493", tex="rbxassetid://11754584535", par="UpperTorso", scl=Vector3.new(0.73,1.13,0.75), off=CFrame.new(0,0,-0.05)},
-    WhiteTowel  ={mesh="rbxassetid://6919149797", tex="rbxassetid://6923948446", par="LowerTorso", scl=Vector3.new(1,1,1), off=CFrame.new(0.55,-0.65,-0.15)*CFrame.Angles(0,math.rad(90),0)},
+    Coldstare   = {mesh="rbxassetid://5028704943",  tex="rbxassetid://5047708728",  par="UpperTorso", scl=Vector3.new(1,1,1),          off=CFrame.new(0,0.15,0.65)*CFrame.Angles(0,math.rad(180),0)},
+    DesertVest  = {mesh="rbxassetid://11755494017", tex="rbxassetid://11755494031", par="UpperTorso", scl=Vector3.new(0.73,1.13,0.75), off=CFrame.new(0,0,-0.05)},
+    DRC         = {mesh="rbxassetid://6541224713",  tex="rbxassetid://7833727918",  par="Head",       scl=Vector3.new(1.01,1.01,1.01), off=CFrame.new(0,0.91,0.11)*CFrame.Angles(0,math.rad(90),0)},
+    Keff        = {mesh="rbxassetid://14156626934", tex="rbxassetid://14156781317", par="Head",       scl=Vector3.new(0.9,0.9,0.9),    off=CFrame.new(-0.06,0.38,0.1)*CFrame.Angles(0,math.rad(180),0)},
+    SeeingStars = {mesh="rbxassetid://62139052",    tex="rbxassetid://62139103",    par="Head",       scl=Vector3.new(1.05,1.05,1.05), off=CFrame.new(0,0.05,-0.45)},
+    Subarctic   = {mesh="rbxassetid://39200112",    tex="rbxassetid://39200088",    par="Head",       scl=Vector3.new(1.02,1.02,1.02), off=CFrame.new(0,0.27,0)},
+    TacticalVest= {mesh="rbxassetid://11754584493", tex="rbxassetid://11754584535", par="UpperTorso", scl=Vector3.new(0.73,1.13,0.75), off=CFrame.new(0,0,-0.05)},
+    WhiteTowel  = {mesh="rbxassetid://6919149797",  tex="rbxassetid://6923948446",  par="LowerTorso", scl=Vector3.new(1,1,1),          off=CFrame.new(0.60,-0.60,-0.02)*CFrame.Angles(0,math.rad(2000),0)},
 }
 
--- =========================
--- CLOTHING ITEMS (FULL)
--- =========================
+-- ============================================================
+-- COMPLETE CLOTHING ITEMS DATABASE
+-- ============================================================
 local CLOTHING_ITEMS = {
-    ["Black World Tour Shirt"]  = {type="Shirt", assetId=15335037852},
-    ["Pink World Tour Shirt"]   = {type="Shirt", assetId=15334978300},
-    ["King Shirt"]              = {type="Shirt", assetId=6296265575},
-    ["King Pants"]              = {type="Pants", assetId=10725550576},
-    ["Black Bandana Shorts"]    = {type="Pants", assetId=15020463274},
+    ["Black World Tour Shirt"]  = {type="Shirt",     assetId=15335037852},
+    ["Pink World Tour Shirt"]   = {type="Shirt",     assetId=15334978300},
+    ["King Shirt"]              = {type="Shirt",     assetId=6296265575},
+    ["King Pants"]              = {type="Pants",     assetId=10725550576},
+    ["Black Bandana Shorts"]    = {type="Pants",     assetId=15020463274},
     ["Ushanka"]                 = {type="Accessory", assetId=12710415119},
     ["White CW Set"]            = {type="Accessory", assetId=97230132426750},
     ["Black CW Headphones"]     = {type="Accessory", assetId=93874449800600},
     ["Black CW Shades"]         = {type="Accessory", assetId=111757672542159},
     ["Star Chain"]              = {type="Accessory", assetId=12269196297},
-    ["Lava Scene"]           = {type="Accessory", assetId=113527009413079},
-    ["Pink Scene"]                = {type="Accessory", assetId=76056263},
+    ["LavaSceneHair"]           = {type="Accessory", assetId=113527009413079},
+    ["AltScene"]                = {type="Accessory", assetId=135147917900203},
 }
 
--- =========================
--- SLOT GUESS (FULL)
--- =========================
+-- ============================================================
+-- SLOT DETECTION
+-- ============================================================
 local function guessSlot(name)
     local nm = name:lower()
-    if nm:find("face") or nm:find("shade") then return "FaceAccessory" end
-    if nm:find("hair") or nm:find("scene") then return "HairAccessory" end
-    if nm:find("neck") or nm:find("chain") then return "NeckAccessory" end
-    if nm:find("back") then return "BackAccessory" end
-    if nm:find("waist") then return "WaistAccessory" end
+    if nm:find("face") or nm:find("shade") or nm:find("glass") then return "FaceAccessory" end
+    if nm:find("hair") or nm:find("scene") or nm:find("wig") or nm:find("lava") or nm:find("alt") then return "HairAccessory" end
+    if nm:find("neck") or nm:find("chain") or nm:find("necklace") then return "NeckAccessory" end
+    if nm:find("back") or nm:find("cape") or nm:find("wing") then return "BackAccessory" end
+    if nm:find("waist") or nm:find("belt") then return "WaistAccessory" end
     if nm:find("shoulder") then return "ShouldersAccessory" end
+    if nm:find("front") then return "FrontAccessory" end
     return "HatAccessory"
 end
 
--- =========================
--- EQUIP MESH
--- =========================
+-- ============================================================
+-- EQUIP MESH ITEM
+-- ============================================================
 local function equipMeshItem(name)
     if equipped[name] then return end
     local d = MESH_ITEMS[name]
     if not d then return end
-
-    local par = character:FindFirstChild(d.par) or character:FindFirstChild("Torso")
+    
+    local char = lp.Character
+    if not char then return end
+    
+    -- R15/R6 fallback
+    local par = char:FindFirstChild(d.par)
+    if not par and d.par == "UpperTorso" then par = char:FindFirstChild("Torso") end
+    if not par and d.par == "LowerTorso" then par = char:FindFirstChild("Torso") end
     if not par then return end
-
+    
     local part = Instance.new("Part")
     part.Name = name
     part.Size = Vector3.new(1,1,1)
     part.CanCollide = false
+    part.Anchored = false
     part.Massless = true
-    part.Parent = character
-
-    local mesh = Instance.new("SpecialMesh", part)
+    part.Parent = char
+    
+    local mesh = Instance.new("SpecialMesh")
+    mesh.MeshType = Enum.MeshType.FileMesh
     mesh.MeshId = d.mesh
     mesh.TextureId = d.tex
     mesh.Scale = d.scl
-
-    local weld = Instance.new("Motor6D", par)
+    mesh.Parent = part
+    
+    local weld = Instance.new("Motor6D")
     weld.Part0 = par
     weld.Part1 = part
     weld.C0 = d.off
-
+    weld.Parent = par
+    
+    part.CFrame = par.CFrame * d.off
+    
     equipped[name] = {part}
 end
 
--- =========================
--- EQUIP CLOTHING (ALL METHODS)
--- =========================
+-- ============================================================
+-- EQUIP CLOTHING (ALL 7 METHODS FROM KAPY HUB)
+-- ============================================================
 local function equipClothing(name)
     if equipped[name] then return end
     local d = CLOTHING_ITEMS[name]
     if not d then return end
-
-    local char = character
+    
+    local char = lp.Character
+    if not char then return end
+    
     local hum = char:FindFirstChildOfClass("Humanoid")
     local idStr = tostring(d.assetId)
-
+    
     local applied = false
     local appliedParts = {}
-
-    -- METHOD 1 (GetObjects)
-    pcall(function()
-        local objs = game:GetObjects("rbxassetid://"..idStr)
-        for _, obj in pairs(objs) do
-            for _, v in pairs(obj:GetDescendants()) do
-                if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") then
-                    v.Parent = char
-                    if hum and v:IsA("Accessory") then hum:AddAccessory(v) end
-                    table.insert(appliedParts, v)
-                    applied = true
+    
+    -- Helper function to try applying objects
+    local function tryApplyObjects(objects, label)
+        if not objects then return false end
+        local allItems = {}
+        for _, obj in pairs(objects) do
+            table.insert(allItems, obj)
+            pcall(function()
+                for _, child in pairs(obj:GetDescendants()) do
+                    table.insert(allItems, child)
                 end
+            end)
+        end
+        
+        for _, item in pairs(allItems) do
+            -- Classic Shirt
+            if item:IsA("Shirt") and (d.type == "Shirt" or d.type == "Accessory") then
+                local old = char:FindFirstChildOfClass("Shirt")
+                if old then old:Destroy() end
+                item.Parent = char
+                table.insert(appliedParts, item)
+                return true
+            end
+            
+            -- Classic Pants
+            if item:IsA("Pants") and (d.type == "Pants" or d.type == "Accessory") then
+                local old = char:FindFirstChildOfClass("Pants")
+                if old then old:Destroy() end
+                item.Parent = char
+                table.insert(appliedParts, item)
+                return true
+            end
+            
+            -- T-Shirt
+            if item:IsA("ShirtGraphic") then
+                local old = char:FindFirstChildOfClass("ShirtGraphic")
+                if old then old:Destroy() end
+                item.Parent = char
+                table.insert(appliedParts, item)
+                return true
+            end
+            
+            -- Accessory
+            if item:IsA("Accessory") or item:IsA("Accoutrement") then
+                item.Parent = char
+                if hum then
+                    pcall(function() hum:AddAccessory(item) end)
+                end
+                table.insert(appliedParts, item)
+                return true
             end
         end
-    end)
-
-    -- METHOD 2 (InsertService)
+        return false
+    end
+    
+    -- METHOD 1: game:GetObjects
     if not applied then
-        pcall(function()
-            local model = InsertService:LoadAsset(d.assetId)
-            for _, v in pairs(model:GetDescendants()) do
-                if v:IsA("Accessory") then
-                    v.Parent = char
-                    hum:AddAccessory(v)
-                    table.insert(appliedParts, v)
-                    applied = true
-                end
-            end
-            model:Destroy()
+        local ok, result = pcall(function()
+            return game:GetObjects("rbxassetid://"..idStr)
         end)
+        if ok and result and #result > 0 then
+            applied = tryApplyObjects(result, "GetObjects")
+        end
     end
-
-    -- METHOD 3 (Dummy Model)
-    if not applied and hum then
-        pcall(function()
+    
+    -- METHOD 2: InsertService:LoadAsset
+    if not applied then
+        local ok2, model = pcall(function()
+            return InsertService:LoadAsset(d.assetId)
+        end)
+        if ok2 and model then
+            applied = tryApplyObjects({model}, "InsertService")
+            if model and model.Parent then pcall(function() model:Destroy() end) end
+        end
+    end
+    
+    -- METHOD 3: Dummy model with CreateHumanoidModelFromDescription
+    if not applied and d.type == "Accessory" then
+        local ok3 = pcall(function()
             local desc = Instance.new("HumanoidDescription")
-            desc[guessSlot(name)] = idStr
-
-            local dummy = Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15)
-            for _, v in pairs(dummy:GetChildren()) do
-                if v:IsA("Accessory") then
-                    v.Parent = char
-                    hum:AddAccessory(v)
-                    table.insert(appliedParts, v)
-                    applied = true
+            local slot = guessSlot(name)
+            desc[slot] = idStr
+            
+            local dummyModel = Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15, Enum.AssetTypeVerification.ClientOnly)
+            
+            if not dummyModel then return end
+            
+            local foundAny = false
+            for _, child in pairs(dummyModel:GetChildren()) do
+                if child:IsA("Accessory") or child:IsA("Accoutrement") then
+                    child.Parent = char
+                    if hum then
+                        pcall(function() hum:AddAccessory(child) end)
+                    end
+                    table.insert(appliedParts, child)
+                    foundAny = true
                 end
             end
-            dummy:Destroy()
+            
+            dummyModel:Destroy()
+            
+            if foundAny then
+                applied = true
+            end
         end)
     end
-
-    -- METHOD 4 (Classic clothing fallback)
+    
+    -- METHOD 4: ApplyDescription with ClientOnly
+    if not applied and d.type == "Accessory" and hum then
+        local ok4 = pcall(function()
+            local desc = hum:GetAppliedDescription()
+            if not desc then return end
+            
+            local slot = guessSlot(name)
+            local current = desc[slot] or ""
+            desc[slot] = current ~= "" and (current..","..idStr) or idStr
+            
+            hum:ApplyDescription(desc, Enum.AssetTypeVerification.ClientOnly)
+        end)
+        
+        if ok4 then
+            applied = true
+            appliedParts = {"desc_"..name.."_"..idStr}
+        end
+    end
+    
+    -- METHOD 5: ApplyDescriptionReset
+    if not applied and d.type == "Accessory" and hum then
+        local ok5 = pcall(function()
+            local desc = hum:GetAppliedDescription()
+            if not desc then return end
+            
+            local slot = guessSlot(name)
+            local current = desc[slot] or ""
+            desc[slot] = current ~= "" and (current..","..idStr) or idStr
+            
+            hum:ApplyDescriptionReset(desc, Enum.AssetTypeVerification.ClientOnly)
+        end)
+        
+        if ok5 then
+            applied = true
+            appliedParts = {"desc_"..name.."_"..idStr}
+        end
+    end
+    
+    -- METHOD 6: Direct template (shirts/pants)
     if not applied then
         if d.type == "Shirt" then
-            local s = Instance.new("Shirt", char)
+            local old = char:FindFirstChildOfClass("Shirt")
+            if old then old:Destroy() end
+            
+            local s = Instance.new("Shirt")
+            s.Name = name
             s.ShirtTemplate = "rbxassetid://"..idStr
+            s.Parent = char
+            
             table.insert(appliedParts, s)
             applied = true
+            
         elseif d.type == "Pants" then
-            local p = Instance.new("Pants", char)
+            local old = char:FindFirstChildOfClass("Pants")
+            if old then old:Destroy() end
+            
+            local p = Instance.new("Pants")
+            p.Name = name
             p.PantsTemplate = "rbxassetid://"..idStr
+            p.Parent = char
+            
             table.insert(appliedParts, p)
             applied = true
         end
     end
-
-    if applied then
+    
+    -- METHOD 7: Brute force all slots
+    if not applied and d.type == "Accessory" then
+        local allSlots = {
+            "HairAccessory","HatAccessory","FaceAccessory",
+            "NeckAccessory","BackAccessory","FrontAccessory",
+            "ShouldersAccessory","WaistAccessory"
+        }
+        
+        for _, slot in ipairs(allSlots) do
+            if applied then break end
+            
+            pcall(function()
+                local desc = Instance.new("HumanoidDescription")
+                desc[slot] = idStr
+                
+                local dummy = Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15, Enum.AssetTypeVerification.ClientOnly)
+                
+                if dummy then
+                    for _, ch in pairs(dummy:GetChildren()) do
+                        if ch:IsA("Accessory") or ch:IsA("Accoutrement") then
+                            ch.Parent = char
+                            if hum then pcall(function() hum:AddAccessory(ch) end) end
+                            table.insert(appliedParts, ch)
+                            applied = true
+                        end
+                    end
+                    dummy:Destroy()
+                end
+            end)
+        end
+    end
+    
+    if #appliedParts > 0 then
         equipped[name] = appliedParts
     end
 end
 
--- =========================
--- TOGGLES (ALL ITEMS)
--- =========================
+-- ============================================================
+-- UNEQUIP ITEM
+-- ============================================================
+local function unequipItem(name)
+    if not equipped[name] then return end
+    
+    local parts = equipped[name]
+    local hadShirt, hadPants = false, false
+    local descAppliedId = nil
+    
+    for _, p in ipairs(parts) do
+        if type(p) == "string" and p:sub(1,5) == "desc_" then
+            descAppliedId = p:match("_(%d+)$")
+        elseif typeof(p) == "Instance" and p.Parent then
+            if p:IsA("Shirt") then hadShirt = true end
+            if p:IsA("Pants") then hadPants = true end
+            p:Destroy()
+        end
+    end
+    
+    equipped[name] = nil
+    
+    local char = lp.Character
+    if not char then return end
+    
+    -- Restore original clothing
+    if hadShirt and origShirtTemplate then
+        if not char:FindFirstChildOfClass("Shirt") then
+            local s = Instance.new("Shirt")
+            s.ShirtTemplate = origShirtTemplate
+            s.Parent = char
+        end
+    end
+    
+    if hadPants and origPantsTemplate then
+        if not char:FindFirstChildOfClass("Pants") then
+            local p = Instance.new("Pants")
+            p.PantsTemplate = origPantsTemplate
+            p.Parent = char
+        end
+    end
+    
+    -- Remove HumanoidDescription-applied accessory
+    if descAppliedId then
+        local hum2 = char:FindFirstChildOfClass("Humanoid")
+        
+        -- Remove actual accessory
+        for _, child in pairs(char:GetChildren()) do
+            if child:IsA("Accessory") or child:IsA("Accoutrement") then
+                local handle = child:FindFirstChild("Handle")
+                if handle then
+                    local mesh = handle:FindFirstChildOfClass("SpecialMesh")
+                    if mesh and mesh.MeshId and mesh.MeshId:find(descAppliedId) then
+                        child:Destroy()
+                    end
+                end
+            end
+        end
+        
+        -- Try description removal
+        if hum2 then
+            pcall(function()
+                local desc = hum2:GetAppliedDescription()
+                if not desc then return end
+                
+                local slots = {
+                    "HatAccessory","HairAccessory","FaceAccessory",
+                    "NeckAccessory","ShouldersAccessory","FrontAccessory",
+                    "BackAccessory","WaistAccessory"
+                }
+                
+                for _, slot in ipairs(slots) do
+                    local val = desc[slot] or ""
+                    if val:find(descAppliedId) then
+                        local ids = {}
+                        for id in val:gmatch("[^,]+") do
+                            if id:gsub("%s","") ~= descAppliedId then
+                                table.insert(ids, id)
+                            end
+                        end
+                        desc[slot] = table.concat(ids, ",")
+                    end
+                end
+                
+                hum2:ApplyDescription(desc, Enum.AssetTypeVerification.ClientOnly)
+            end)
+        end
+    end
+end
+
+-- ============================================================
+-- EQUIP/UNEQUIP WRAPPER
+-- ============================================================
+local function equipItem(name)
+    if MESH_ITEMS[name] then
+        equipMeshItem(name)
+    elseif CLOTHING_ITEMS[name] then
+        equipClothing(name)
+    end
+end
+
+-- ============================================================
+-- CREATE TOGGLES FOR ALL ITEMS
+-- ============================================================
 local allNames = {}
 
 for k in pairs(MESH_ITEMS) do table.insert(allNames, k) end
@@ -362,81 +628,104 @@ for _, name in ipairs(allNames) do
         CurrentValue = false,
         Callback = function(v)
             if v then
-                if MESH_ITEMS[name] then
-                    equipMeshItem(name)
-                else
-                    equipClothing(name)
-                end
+                equipItem(name)
             else
-                if equipped[name] then
-                    for _, p in pairs(equipped[name]) do
-                        if typeof(p) == "Instance" and p.Parent then
-                            p:Destroy()
-                        end
-                    end
-                    equipped[name] = nil
-                end
+                unequipItem(name)
             end
         end
     })
 end
 
--- =========================
+-- ============================================================
 -- CUSTOM ID LOADER
--- =========================
-local customID = 0
+-- ============================================================
+ItemTab:CreateSection("Custom Catalog Loader")
+
+local customIdVal = 0
 
 ItemTab:CreateInput({
-    Name = "Catalog ID",
-    PlaceholderText = "Enter ID...",
-    Callback = function(v)
-        customID = tonumber(v) or 0
+    Name = "Catalog/Asset ID",
+    PlaceholderText = "e.g. 12710415119",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(text)
+        customIdVal = tonumber(text) or 0
     end
 })
 
 ItemTab:CreateButton({
-    Name = "Load Hat",
+    Name = "Load as Hat",
     Callback = function()
-        if customID <= 0 then return end
-        local name = "Custom_"..customID
-        CLOTHING_ITEMS[name] = {type="Accessory", assetId=customID}
-        equipClothing(name)
+        if customIdVal <= 0 then return end
+        local cName = "Custom_"..tostring(customIdVal)
+        CLOTHING_ITEMS[cName] = {type="Accessory", assetId=customIdVal}
+        equipClothing(cName)
     end
 })
 
 ItemTab:CreateButton({
-    Name = "Load Shirt",
+    Name = "Load as Shirt",
     Callback = function()
-        if customID <= 0 then return end
-        local name = "CustomShirt_"..customID
-        CLOTHING_ITEMS[name] = {type="Shirt", assetId=customID}
-        equipClothing(name)
+        if customIdVal <= 0 then return end
+        local cName = "CustomShirt_"..tostring(customIdVal)
+        CLOTHING_ITEMS[cName] = {type="Shirt", assetId=customIdVal}
+        equipClothing(cName)
     end
 })
 
 ItemTab:CreateButton({
-    Name = "Load Pants",
+    Name = "Load as Pants",
     Callback = function()
-        if customID <= 0 then return end
-        local name = "CustomPants_"..customID
-        CLOTHING_ITEMS[name] = {type="Pants", assetId=customID}
-        equipClothing(name)
+        if customIdVal <= 0 then return end
+        local cName = "CustomPants_"..tostring(customIdVal)
+        CLOTHING_ITEMS[cName] = {type="Pants", assetId=customIdVal}
+        equipClothing(cName)
     end
 })
 
 ItemTab:CreateButton({
     Name = "Unequip All",
     Callback = function()
-        for name in pairs(equipped) do
-            for _, v in pairs(equipped[name]) do
-                if typeof(v) == "Instance" and v.Parent then
-                    v:Destroy()
+        local toRemove = {}
+        for n in pairs(equipped) do table.insert(toRemove, n) end
+        for _, n in ipairs(toRemove) do unequipItem(n) end
+    end
+})
+
+-- ============================================================
+-- CHARACTER RESPAWN HANDLER
+-- ============================================================
+lp.CharacterAdded:Connect(function(newChar)
+    task.wait(1)
+    character = newChar
+    humanoid = newChar:WaitForChild("Humanoid")
+    root = newChar:WaitForChild("HumanoidRootPart")
+    
+    -- Store new original clothing
+    local s = newChar:FindFirstChildOfClass("Shirt")
+    local p = newChar:FindFirstChildOfClass("Pants")
+    if s then origShirtTemplate = s.ShirtTemplate end
+    if p then origPantsTemplate = p.PantsTemplate end
+    
+    -- Re-equip items
+    local wasOn = {}
+    for k in pairs(equipped) do table.insert(wasOn, k) end
+    
+    for k in pairs(equipped) do
+        local parts = equipped[k]
+        if parts then
+            for _, pt in ipairs(parts) do
+                if typeof(pt) == "Instance" and pt.Parent then
+                    pt:Destroy()
                 end
             end
         end
-        equipped = {}
+        equipped[k] = nil
     end
-})
+    
+    for _, k in ipairs(wasOn) do
+        equipItem(k)
+    end
+end)
 
 -- [[ SPOOFER TAB ]]
 SpooferTab:CreateSection("Name Changer")
@@ -454,7 +743,7 @@ SpooferTab:CreateButton({
     Name = "Apply Name",
     Callback = function()
         nameChangerEnabled = true
-        findNameLabels() -- Find all name labels when applying
+        findNameLabels()
         Rayfield:Notify({
             Title = "Name Changer",
             Content = "Name changed to: " .. spoofedName,
@@ -468,7 +757,7 @@ SpooferTab:CreateButton({
     Callback = function()
         spoofedName = originalName
         nameChangerEnabled = false
-        cachedNameLabels = {} -- Clear cache
+        cachedNameLabels = {}
         Rayfield:Notify({
             Title = "Name Changer",
             Content = "Name reset to original",
@@ -484,10 +773,8 @@ local bans = {
     ["YT"] = "13181356130",
     ["Twitch"] = "13284240977",
     ["Global"] = "13223858189",
-    ["50 Millon Rap"] = "13200847176",
-    ["Tester"] = "13200846561",
+    ["50 Million Rap"] = "13200847176",
     ["Staff"] = "13284239964"
-   
 }
 
 for n, id in pairs(bans) do
@@ -512,15 +799,13 @@ SpooferTab:CreateButton({
 game:GetService("RunService").Heartbeat:Connect(function()
     if not root or not lp.Character then return end
 
+    -- Hitbox
     if hitboxEnabled then
         for _, p in pairs(game.Players:GetPlayers()) do
             if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
                 local hrp = p.Character.HumanoidRootPart
-
                 hrp.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
                 hrp.Transparency = hitboxTransparency
-
-                -- optional visual
                 hrp.Material = Enum.Material.ForceField
             end
         end
@@ -537,18 +822,16 @@ game:GetService("RunService").Heartbeat:Connect(function()
     end
 end)
 
--- [[ NAME SPOOF LOOP (Separate slower loop to prevent lag) ]]
+-- [[ NAME SPOOF LOOP ]]
 spawn(function()
-    while wait(0.1) do -- Only runs 10 times per second instead of 60+
+    while wait(0.1) do
         if nameChangerEnabled then
-            -- Update cached labels
             for _, label in pairs(cachedNameLabels) do
                 if label and label.Parent then
                     label.Text = spoofedName
                 end
             end
             
-            -- Refresh cache every second
             if tick() - lastNameUpdate > 1 then
                 findNameLabels()
                 lastNameUpdate = tick()
@@ -558,7 +841,7 @@ spawn(function()
 end)
 
 Rayfield:Notify({
-    Title = "Metoird Hub",
-    Content = "Loaded successfully (No Key System)!",
+    Title = "Metoird Hub Enhanced",
+    Content = "Loaded successfully with full item system!",
     Duration = 5
 })
